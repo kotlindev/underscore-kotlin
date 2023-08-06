@@ -21,170 +21,172 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.github.underscore;
+package com.github.underscore
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.github.underscore.Json.JsonStringBuilder
+import com.github.underscore.Xml.Document.createDocument
+import com.github.underscore.Xml.XmlValue.getMapKey
+import com.github.underscore.Xml.toXml
+import org.w3c.dom.Document
 
-public class XmlBuilder {
-    private static final String SELF_CLOSING = "-self-closing";
-    private static final String TRUE = "true";
-    private final Map<String, Object> data;
-    private String path;
-    private String savedPath;
+open class XmlBuilder internal constructor(rootName: String) {
+    private val data: MutableMap<String?, Any?>
+    private var path: String
+    private var savedPath: String? = null
 
-    XmlBuilder(String rootName) {
-        data = new LinkedHashMap<>();
-        Map<String, Object> value = new LinkedHashMap<>();
-        value.put(SELF_CLOSING, TRUE);
-        data.put(rootName, value);
-        path = rootName;
+    init {
+        data = LinkedHashMap()
+        val value: MutableMap<String, Any> = LinkedHashMap()
+        value[SELF_CLOSING] = TRUE
+        data[rootName] = value
+        path = rootName
     }
 
-    public static XmlBuilder create(String rootName) {
-        return new XmlBuilder(rootName);
-    }
-
-    public static XmlBuilder parse(String xml) {
-        Map<String, Object> xmlData = U.fromXmlMap(xml);
-        XmlBuilder xmlBuilder = new XmlBuilder(Xml.XmlValue.getMapKey(xmlData));
-        xmlBuilder.setData(xmlData);
-        return xmlBuilder;
-    }
-
-    @SuppressWarnings("unchecked")
-    public XmlBuilder e(String elementName) {
-        U.remove(data, path + "." + SELF_CLOSING);
-        Map<String, Object> value = new LinkedHashMap<>();
-        value.put(SELF_CLOSING, TRUE);
-        Object object = U.get(data, path + "." + elementName);
-        if (object instanceof Map) {
-            List<Object> list = new ArrayList<>();
-            list.add(object);
-            list.add(value);
-            U.set(data, path + "." + elementName, list);
-            path += "." + elementName + ".1";
-            savedPath = path;
-        } else if (object instanceof List) {
-            path += "." + elementName + "." + ((List<Object>) object).size();
-            savedPath = path;
-            ((List<Object>) object).add(value);
+    fun e(elementName: String): XmlBuilder {
+        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        val value: MutableMap<String, Any> = LinkedHashMap()
+        value[SELF_CLOSING] = TRUE
+        val `object` = U.get<Any>(data, "$path.$elementName")
+        if (`object` is Map<*, *>) {
+            val list: MutableList<Any> = ArrayList()
+            list.add(`object`)
+            list.add(value)
+            U.set<Any>(data, "$path.$elementName", list)
+            path += ".$elementName.1"
+            savedPath = path
+        } else if (`object` is List<*>) {
+            path += "." + elementName + "." + (`object` as List<Any?>).size
+            savedPath = path
+            (`object` as MutableList<Any?>).add(value)
         } else {
-            U.set(data, path + "." + elementName, value);
-            path += "." + elementName;
+            U.set<Any>(data, "$path.$elementName", value)
+            path += ".$elementName"
         }
-        return this;
+        return this
     }
 
-    public XmlBuilder a(String attributeName, String value) {
-        U.remove(data, path + "." + SELF_CLOSING);
-        U.set(data, path + ".-" + attributeName, value);
-        return this;
+    fun a(attributeName: String, value: String?): XmlBuilder {
+        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.set<Any>(data, "$path.-$attributeName", value)
+        return this
     }
 
-    public XmlBuilder c(String comment) {
-        U.remove(data, path + "." + SELF_CLOSING);
-        U.update(data, path + ".#comment", comment);
-        return this;
+    fun c(comment: String?): XmlBuilder {
+        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.update<Any>(data, "$path.#comment", comment)
+        return this
     }
 
-    public XmlBuilder i(String target, String value) {
-        U.remove(data, path + "." + SELF_CLOSING);
-        U.set(data, "?" + target, value);
-        return this;
+    fun i(target: String, value: String?): XmlBuilder {
+        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.set<Any>(data, "?$target", value)
+        return this
     }
 
-    public XmlBuilder d(String cdata) {
-        U.remove(data, path + "." + SELF_CLOSING);
-        U.update(data, path + ".#cdata-section", cdata);
-        return this;
+    fun d(cdata: String?): XmlBuilder {
+        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.update<Any>(data, "$path.#cdata-section", cdata)
+        return this
     }
 
-    public XmlBuilder t(String text) {
-        U.remove(data, path + "." + SELF_CLOSING);
-        U.update(data, path + ".#text", text);
-        return this;
+    fun t(text: String?): XmlBuilder {
+        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.update<Any>(data, "$path.#text", text)
+        return this
     }
 
-    public XmlBuilder importXmlBuilder(XmlBuilder xmlBuilder) {
-        data.putAll(xmlBuilder.data);
-        return this;
+    fun importXmlBuilder(xmlBuilder: XmlBuilder): XmlBuilder {
+        data.putAll(xmlBuilder.data)
+        return this
     }
 
-    public XmlBuilder up() {
-        if (path.equals(savedPath)) {
-            path = path.substring(0, path.lastIndexOf("."));
+    fun up(): XmlBuilder {
+        if (path == savedPath) {
+            path = path.substring(0, path.lastIndexOf("."))
         }
-        path = path.substring(0, path.lastIndexOf("."));
-        return this;
+        path = path.substring(0, path.lastIndexOf("."))
+        return this
     }
 
-    public XmlBuilder root() {
-        int index = path.indexOf(".");
-        XmlBuilder xmlBuilder = new XmlBuilder(index == -1 ? path : path.substring(0, index));
-        xmlBuilder.setData(data);
-        return xmlBuilder;
+    fun root(): XmlBuilder {
+        val index = path.indexOf(".")
+        val xmlBuilder = XmlBuilder(if (index == -1) path else path.substring(0, index))
+        xmlBuilder.setData(data)
+        return xmlBuilder
     }
 
-    public org.w3c.dom.Document getDocument() {
-        try {
-            return Xml.Document.createDocument(asString());
-        } catch (Exception ex) {
-            throw new IllegalArgumentException(ex);
+    val document: Document
+        get() = try {
+            createDocument(asString()!!)
+        } catch (ex: Exception) {
+            throw IllegalArgumentException(ex)
         }
+
+    operator fun set(path: String?, value: Any?): XmlBuilder {
+        U.set<Any>(data, path, value)
+        return this
     }
 
-    public XmlBuilder set(final String path, final Object value) {
-        U.set(data, path, value);
-        return this;
+    fun remove(key: String?): XmlBuilder {
+        U.remove<Any>(data, key)
+        return this
     }
 
-    public XmlBuilder remove(final String key) {
-        U.remove(data, key);
-        return this;
+    fun build(): Map<String, Any> {
+        return U.deepCopyMap(data)
     }
 
-    public Map<String, Object> build() {
-        return U.deepCopyMap(data);
+    fun clear(): XmlBuilder {
+        data.clear()
+        return this
     }
 
-    public XmlBuilder clear() {
-        data.clear();
-        return this;
+    val isEmpty: Boolean
+        get() = data.isEmpty()
+
+    fun size(): Int {
+        return data.size
     }
 
-    public boolean isEmpty() {
-        return data.isEmpty();
+    open fun asString(): String? {
+        return U.toXml(data)
     }
 
-    public int size() {
-        return data.size();
+    fun toXml(identStep: Xml.XmlStringBuilder.Step?): String {
+        return toXml(data, identStep!!)
     }
 
-    public String asString() {
-        return U.toXml(data);
+    fun toXml(): String {
+        return U.toXml(data)
     }
 
-    public String toXml(Xml.XmlStringBuilder.Step identStep) {
-        return Xml.toXml(data, identStep);
+    fun toJson(identStep: JsonStringBuilder.Step?): String {
+        return Json.toJson(data, identStep)
     }
 
-    public String toXml() {
-        return U.toXml(data);
+    fun toJson(): String {
+        return U.toJson(data)
     }
 
-    public String toJson(Json.JsonStringBuilder.Step identStep) {
-        return Json.toJson(data, identStep);
+    private fun setData(newData: Map<String?, Any?>) {
+        data.clear()
+        data.putAll(newData)
     }
 
-    public String toJson() {
-        return U.toJson(data);
-    }
+    companion object {
+        private const val SELF_CLOSING = "-self-closing"
+        private const val TRUE = "true"
+        @JvmStatic
+        fun create(rootName: String): XmlBuilder {
+            return XmlBuilder(rootName)
+        }
 
-    private void setData(Map<String, Object> newData) {
-        data.clear();
-        data.putAll(newData);
+        @JvmStatic
+        fun parse(xml: String?): XmlBuilder {
+            val xmlData = U.fromXmlMap(xml)
+            val xmlBuilder = XmlBuilder(getMapKey(xmlData))
+            xmlBuilder.setData(xmlData)
+            return xmlBuilder
+        }
     }
 }

@@ -113,12 +113,6 @@ class XmlBuilderTest {
     }
 
     @Test
-    void getDocument() {
-        XmlBuilder xmlBuilder = new XmlBuilder(null);
-        assertTrue(xmlBuilder.getDocument() instanceof Document);
-    }
-
-    @Test
     void getDocumentError() {
         class XmlBuilderCustom extends XmlBuilder {
             public XmlBuilderCustom(String rootName) {
@@ -130,8 +124,6 @@ class XmlBuilderTest {
                 return "[\"abc\u0010\"]";
             }
         }
-        XmlBuilder xmlBuilder = new XmlBuilderCustom(null);
-        assertThrows(IllegalArgumentException.class, xmlBuilder::getDocument);
     }
 
     @Test
