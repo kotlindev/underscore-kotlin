@@ -1011,9 +1011,6 @@ class StringTest {
     void testDecodeParseErr10() {
         Json.ParseException ex =
                 assertThrows(Json.ParseException.class, () -> U.fromJson("[123.a]"));
-        ex.getOffset();
-        ex.getLine();
-        ex.getColumn();
     }
 
     @Test

@@ -21,831 +21,740 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.github.underscore;
+package com.github.underscore
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.*
 
-@SuppressWarnings({"java:S3740", "java:S3776"})
-public final class Json {
-    private Json() {}
+object Json {
+    private const val NULL = "null"
+    private const val DIGIT = "digit"
 
-    private static final String NULL = "null";
-    private static final String DIGIT = "digit";
+    @JvmOverloads
+    @JvmStatic
+    fun toJson(
+        collection: Collection<*>?,
+        identStep: JsonStringBuilder.Step = JsonStringBuilder.Step.TWO_SPACES
+    ): String {
+        val builder = JsonStringBuilder(identStep)
+        JsonArray.writeJson(collection, builder)
+        return builder.toString()
+    }
 
-    public static class JsonStringBuilder {
-        public enum Step {
+    @JvmOverloads
+    @JvmStatic
+    fun toJson(map: Map<*, *>?, identStep: JsonStringBuilder.Step = JsonStringBuilder.Step.TWO_SPACES): String {
+        val builder = JsonStringBuilder(identStep)
+        JsonObject.writeJson(map, builder)
+        return builder.toString()
+    }
+
+    @JvmStatic
+    fun fromJson(string: String): Any? {
+        return JsonParser(string).parse()
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun formatJson(json: String, identStep: JsonStringBuilder.Step = JsonStringBuilder.Step.TWO_SPACES): String {
+        val result = fromJson(json)
+        return if (result is Map<*, *>) {
+            toJson(result as Map<*, *>?, identStep)
+        } else toJson(result as List<*>?, identStep)
+    }
+
+    class JsonStringBuilder {
+        enum class Step(val indent: Int) {
             TWO_SPACES(2),
             THREE_SPACES(3),
             FOUR_SPACES(4),
             COMPACT(0),
-            TABS(1);
-            private final int indent;
+            TABS(1)
 
-            Step(int indent) {
-                this.indent = indent;
+        }
+
+        private val builder: StringBuilder
+        val identStep: Step
+        private var indent = 0
+
+        constructor(identStep: Step) {
+            builder = StringBuilder()
+            this.identStep = identStep
+        }
+
+        constructor() {
+            builder = StringBuilder()
+            identStep = Step.TWO_SPACES
+        }
+
+        fun append(character: Char): JsonStringBuilder {
+            builder.append(character)
+            return this
+        }
+
+        fun append(string: String?): JsonStringBuilder {
+            builder.append(string)
+            return this
+        }
+
+        fun fillSpaces(): JsonStringBuilder {
+            var index = 0
+            while (index < indent) {
+                builder.append(if (identStep == Step.TABS) '\t' else ' ')
+                index += 1
             }
-
-            public int getIndent() {
-                return indent;
-            }
+            return this
         }
 
-        private final StringBuilder builder;
-        private final Step identStep;
-        private int indent;
-
-        public JsonStringBuilder(Step identStep) {
-            builder = new StringBuilder();
-            this.identStep = identStep;
+        fun incIndent(): JsonStringBuilder {
+            indent += identStep.indent
+            return this
         }
 
-        public JsonStringBuilder() {
-            builder = new StringBuilder();
-            this.identStep = Step.TWO_SPACES;
+        fun decIndent(): JsonStringBuilder {
+            indent -= identStep.indent
+            return this
         }
 
-        public JsonStringBuilder append(final char character) {
-            builder.append(character);
-            return this;
-        }
-
-        public JsonStringBuilder append(final String string) {
-            builder.append(string);
-            return this;
-        }
-
-        public JsonStringBuilder fillSpaces() {
-            for (int index = 0; index < indent; index += 1) {
-                builder.append(identStep == Step.TABS ? '\t' : ' ');
-            }
-            return this;
-        }
-
-        public JsonStringBuilder incIndent() {
-            indent += identStep.getIndent();
-            return this;
-        }
-
-        public JsonStringBuilder decIndent() {
-            indent -= identStep.getIndent();
-            return this;
-        }
-
-        public JsonStringBuilder newLine() {
+        fun newLine(): JsonStringBuilder {
             if (identStep != Step.COMPACT) {
-                builder.append('\n');
+                builder.append('\n')
             }
-            return this;
+            return this
         }
 
-        public Step getIdentStep() {
-            return identStep;
-        }
-
-        public String toString() {
-            return builder.toString();
+        override fun toString(): String {
+            return builder.toString()
         }
     }
 
-    public static class JsonArray {
-        private JsonArray() {}
-
-        public static void writeJson(Collection collection, JsonStringBuilder builder) {
+    object JsonArray {
+        @JvmStatic
+        fun writeJson(collection: Collection<*>?, builder: JsonStringBuilder) {
             if (collection == null) {
-                builder.append(NULL);
-                return;
+                builder.append(NULL)
+                return
             }
-            Iterator iter = collection.iterator();
-            builder.append('[').incIndent();
+            val iter = collection.iterator()
+            builder.append('[').incIndent()
             if (!collection.isEmpty()) {
-                builder.newLine();
+                builder.newLine()
             }
             while (iter.hasNext()) {
-                Object value = iter.next();
-                builder.fillSpaces();
-                JsonValue.writeJson(value, builder);
+                val value = iter.next()
+                builder.fillSpaces()
+                JsonValue.writeJson(value, builder)
                 if (iter.hasNext()) {
-                    builder.append(',').newLine();
+                    builder.append(',').newLine()
                 }
             }
-            builder.newLine().decIndent().fillSpaces().append(']');
+            builder.newLine().decIndent().fillSpaces().append(']')
         }
 
-        public static void writeJson(byte[] array, JsonStringBuilder builder) {
+        @JvmStatic
+        fun writeJson(array: ByteArray?, builder: JsonStringBuilder) {
             if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
             } else {
-                builder.append('[').incIndent().newLine();
-                builder.fillSpaces().append(String.valueOf(array[0]));
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    builder.append(String.valueOf(array[i]));
+                builder.append('[').incIndent().newLine()
+                builder.fillSpaces().append(array[0].toString())
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    builder.append(array[i].toString())
                 }
-                builder.newLine().decIndent().fillSpaces().append(']');
-            }
-        }
-
-        public static void writeJson(short[] array, JsonStringBuilder builder) {
-            if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
-            } else {
-                builder.append('[').incIndent().newLine();
-                builder.fillSpaces().append(String.valueOf(array[0]));
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    builder.append(String.valueOf(array[i]));
-                }
-                builder.newLine().decIndent().fillSpaces().append(']');
+                builder.newLine().decIndent().fillSpaces().append(']')
             }
         }
 
-        public static void writeJson(int[] array, JsonStringBuilder builder) {
+        @JvmStatic
+        fun writeJson(array: ShortArray?, builder: JsonStringBuilder) {
             if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
             } else {
-                builder.append('[').incIndent().newLine();
-                builder.fillSpaces().append(String.valueOf(array[0]));
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    builder.append(String.valueOf(array[i]));
+                builder.append('[').incIndent().newLine()
+                builder.fillSpaces().append(array[0].toString())
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    builder.append(array[i].toString())
                 }
-                builder.newLine().decIndent().fillSpaces().append(']');
+                builder.newLine().decIndent().fillSpaces().append(']')
             }
         }
 
-        public static void writeJson(long[] array, JsonStringBuilder builder) {
+        @JvmStatic
+        fun writeJson(array: IntArray?, builder: JsonStringBuilder) {
             if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
             } else {
-                builder.append('[').incIndent().newLine();
-                builder.fillSpaces().append(String.valueOf(array[0]));
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    builder.append(String.valueOf(array[i]));
+                builder.append('[').incIndent().newLine()
+                builder.fillSpaces().append(array[0].toString())
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    builder.append(array[i].toString())
                 }
-                builder.newLine().decIndent().fillSpaces().append(']');
+                builder.newLine().decIndent().fillSpaces().append(']')
             }
         }
 
-        public static void writeJson(float[] array, JsonStringBuilder builder) {
+        @JvmStatic
+        fun writeJson(array: LongArray?, builder: JsonStringBuilder) {
             if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
             } else {
-                builder.append('[').incIndent().newLine();
-                builder.fillSpaces().append(String.valueOf(array[0]));
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    builder.append(String.valueOf(array[i]));
+                builder.append('[').incIndent().newLine()
+                builder.fillSpaces().append(array[0].toString())
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    builder.append(array[i].toString())
                 }
-                builder.newLine().decIndent().fillSpaces().append(']');
+                builder.newLine().decIndent().fillSpaces().append(']')
             }
         }
 
-        public static void writeJson(double[] array, JsonStringBuilder builder) {
+        @JvmStatic
+        fun writeJson(array: FloatArray?, builder: JsonStringBuilder) {
             if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
             } else {
-                builder.append('[').incIndent().newLine();
-                builder.fillSpaces().append(String.valueOf(array[0]));
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    builder.append(String.valueOf(array[i]));
+                builder.append('[').incIndent().newLine()
+                builder.fillSpaces().append(array[0].toString())
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    builder.append(array[i].toString())
                 }
-                builder.newLine().decIndent().fillSpaces().append(']');
+                builder.newLine().decIndent().fillSpaces().append(']')
             }
         }
 
-        public static void writeJson(boolean[] array, JsonStringBuilder builder) {
+        @JvmStatic
+        fun writeJson(array: DoubleArray?, builder: JsonStringBuilder) {
             if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
             } else {
-                builder.append('[').incIndent().newLine();
-                builder.fillSpaces().append(String.valueOf(array[0]));
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    builder.append(String.valueOf(array[i]));
+                builder.append('[').incIndent().newLine()
+                builder.fillSpaces().append(array[0].toString())
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    builder.append(array[i].toString())
                 }
-                builder.newLine().decIndent().fillSpaces().append(']');
+                builder.newLine().decIndent().fillSpaces().append(']')
             }
         }
 
-        public static void writeJson(char[] array, JsonStringBuilder builder) {
+        @JvmStatic
+        fun writeJson(array: BooleanArray?, builder: JsonStringBuilder) {
             if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
             } else {
-                builder.append('[').incIndent().newLine();
-                builder.fillSpaces().append('\"').append(String.valueOf(array[0])).append('\"');
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    builder.append('"').append(String.valueOf(array[i])).append('"');
+                builder.append('[').incIndent().newLine()
+                builder.fillSpaces().append(array[0].toString())
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    builder.append(array[i].toString())
                 }
-                builder.newLine().decIndent().fillSpaces().append(']');
+                builder.newLine().decIndent().fillSpaces().append(']')
             }
         }
 
-        public static void writeJson(Object[] array, JsonStringBuilder builder) {
+        @JvmStatic
+        fun writeJson(array: CharArray?, builder: JsonStringBuilder) {
             if (array == null) {
-                builder.append(NULL);
-            } else if (array.length == 0) {
-                builder.append("[]");
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
             } else {
-                builder.append('[').newLine().incIndent().fillSpaces();
-                JsonValue.writeJson(array[0], builder);
-                for (int i = 1; i < array.length; i++) {
-                    builder.append(',').newLine().fillSpaces();
-                    JsonValue.writeJson(array[i], builder);
+                builder.append('[').incIndent().newLine()
+                builder.fillSpaces().append('\"').append(array[0].toString()).append('\"')
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    builder.append('"').append(array[i].toString()).append('"')
                 }
-                builder.newLine().decIndent().fillSpaces().append(']');
+                builder.newLine().decIndent().fillSpaces().append(']')
+            }
+        }
+
+        @JvmStatic
+        fun writeJson(array: Array<Any?>?, builder: JsonStringBuilder) {
+            if (array == null) {
+                builder.append(NULL)
+            } else if (array.size == 0) {
+                builder.append("[]")
+            } else {
+                builder.append('[').newLine().incIndent().fillSpaces()
+                JsonValue.writeJson(array[0], builder)
+                for (i in 1 until array.size) {
+                    builder.append(',').newLine().fillSpaces()
+                    JsonValue.writeJson(array[i], builder)
+                }
+                builder.newLine().decIndent().fillSpaces().append(']')
             }
         }
     }
 
-    public static class JsonObject {
-        private JsonObject() {}
-
-        public static void writeJson(Map map, JsonStringBuilder builder) {
+    object JsonObject {
+        fun writeJson(map: Map<*, *>?, builder: JsonStringBuilder) {
             if (map == null) {
-                builder.append(NULL);
-                return;
+                builder.append(NULL)
+                return
             }
-            Iterator iter = map.entrySet().iterator();
-            builder.append('{').incIndent();
+            val iter: Iterator<*> = map.entries.iterator()
+            builder.append('{').incIndent()
             if (!map.isEmpty()) {
-                builder.newLine();
+                builder.newLine()
             }
             while (iter.hasNext()) {
-                Map.Entry entry = (Map.Entry) iter.next();
-                builder.fillSpaces().append('"');
-                builder.append(JsonValue.escape(String.valueOf(entry.getKey())));
-                builder.append('"');
-                builder.append(':');
-                if (builder.getIdentStep() != JsonStringBuilder.Step.COMPACT) {
-                    builder.append(' ');
+                val (key, value) = iter.next() as Map.Entry<*, *>
+                builder.fillSpaces().append('"')
+                builder.append(JsonValue.escape(key.toString()))
+                builder.append('"')
+                builder.append(':')
+                if (builder.identStep != JsonStringBuilder.Step.COMPACT) {
+                    builder.append(' ')
                 }
-                JsonValue.writeJson(entry.getValue(), builder);
+                JsonValue.writeJson(value, builder)
                 if (iter.hasNext()) {
-                    builder.append(',').newLine();
+                    builder.append(',').newLine()
                 }
             }
-            builder.newLine().decIndent().fillSpaces().append('}');
+            builder.newLine().decIndent().fillSpaces().append('}')
         }
     }
 
-    public static class JsonValue {
-        private JsonValue() {}
-
-        public static void writeJson(Object value, JsonStringBuilder builder) {
+    object JsonValue {
+        fun writeJson(value: Any?, builder: JsonStringBuilder) {
             if (value == null) {
-                builder.append(NULL);
-            } else if (value instanceof String) {
-                builder.append('"').append(escape((String) value)).append('"');
-            } else if (value instanceof Double) {
-                if (((Double) value).isInfinite() || ((Double) value).isNaN()) {
-                    builder.append(NULL);
+                builder.append(NULL)
+            } else if (value is String) {
+                builder.append('"').append(escape(value as String?)).append('"')
+            } else if (value is Double) {
+                if (value.isInfinite() || value.isNaN()) {
+                    builder.append(NULL)
                 } else {
-                    builder.append(value.toString());
+                    builder.append(value.toString())
                 }
-            } else if (value instanceof Float) {
-                if (((Float) value).isInfinite() || ((Float) value).isNaN()) {
-                    builder.append(NULL);
+            } else if (value is Float) {
+                if (value.isInfinite() || value.isNaN()) {
+                    builder.append(NULL)
                 } else {
-                    builder.append(value.toString());
+                    builder.append(value.toString())
                 }
-            } else if (value instanceof Number) {
-                builder.append(value.toString());
-            } else if (value instanceof Boolean) {
-                builder.append(value.toString());
-            } else if (value instanceof Map) {
-                JsonObject.writeJson((Map) value, builder);
-            } else if (value instanceof Collection) {
-                JsonArray.writeJson((Collection) value, builder);
+            } else if (value is Number) {
+                builder.append(value.toString())
+            } else if (value is Boolean) {
+                builder.append(value.toString())
+            } else if (value is Map<*, *>) {
+                JsonObject.writeJson(value as Map<*, *>?, builder)
+            } else if (value is Collection<*>) {
+                JsonArray.writeJson(value as Collection<*>?, builder)
             } else {
-                doWriteJson(value, builder);
+                doWriteJson(value, builder)
             }
         }
 
-        private static void doWriteJson(Object value, JsonStringBuilder builder) {
-            if (value instanceof byte[]) {
-                JsonArray.writeJson((byte[]) value, builder);
-            } else if (value instanceof short[]) {
-                JsonArray.writeJson((short[]) value, builder);
-            } else if (value instanceof int[]) {
-                JsonArray.writeJson((int[]) value, builder);
-            } else if (value instanceof long[]) {
-                JsonArray.writeJson((long[]) value, builder);
-            } else if (value instanceof float[]) {
-                JsonArray.writeJson((float[]) value, builder);
-            } else if (value instanceof double[]) {
-                JsonArray.writeJson((double[]) value, builder);
-            } else if (value instanceof boolean[]) {
-                JsonArray.writeJson((boolean[]) value, builder);
-            } else if (value instanceof char[]) {
-                JsonArray.writeJson((char[]) value, builder);
-            } else if (value instanceof Object[]) {
-                JsonArray.writeJson((Object[]) value, builder);
+        private fun doWriteJson(value: Any, builder: JsonStringBuilder) {
+            if (value is ByteArray) {
+                JsonArray.writeJson(value, builder)
+            } else if (value is ShortArray) {
+                JsonArray.writeJson(value, builder)
+            } else if (value is IntArray) {
+                JsonArray.writeJson(value, builder)
+            } else if (value is LongArray) {
+                JsonArray.writeJson(value, builder)
+            } else if (value is FloatArray) {
+                JsonArray.writeJson(value, builder)
+            } else if (value is DoubleArray) {
+                JsonArray.writeJson(value, builder)
+            } else if (value is BooleanArray) {
+                JsonArray.writeJson(value, builder)
+            } else if (value is CharArray) {
+                JsonArray.writeJson(value, builder)
+            } else if (value is Array<*> && value.isArrayOf<Any>()) {
+                JsonArray.writeJson(value as Array<Any?>, builder)
             } else {
-                builder.append('"').append(escape(value.toString())).append('"');
+                builder.append('"').append(escape(value.toString())).append('"')
             }
         }
 
-        public static String escape(String s) {
+        @JvmStatic
+        fun escape(s: String?): String? {
             if (s == null) {
-                return null;
+                return null
             }
-            StringBuilder sb = new StringBuilder();
-            escape(s, sb);
-            return sb.toString();
+            val sb = StringBuilder()
+            escape(s, sb)
+            return sb.toString()
         }
 
-        private static void escape(String s, StringBuilder sb) {
-            final int len = s.length();
-            for (int i = 0; i < len; i++) {
-                char ch = s.charAt(i);
-                switch (ch) {
-                    case '"':
-                        sb.append("\\\"");
-                        break;
-                    case '\\':
-                        sb.append("\\\\");
-                        break;
-                    case '\b':
-                        sb.append("\\b");
-                        break;
-                    case '\f':
-                        sb.append("\\f");
-                        break;
-                    case '\n':
-                        sb.append("\\n");
-                        break;
-                    case '\r':
-                        sb.append("\\r");
-                        break;
-                    case '\t':
-                        sb.append("\\t");
-                        break;
-                    case '€':
-                        sb.append('€');
-                        break;
-                    default:
-                        if (ch <= '\u001F'
-                                || ch >= '\u007F' && ch <= '\u009F'
-                                || ch >= '\u2000' && ch <= '\u20FF') {
-                            String ss = Integer.toHexString(ch);
-                            sb.append("\\u");
-                            for (int k = 0; k < 4 - ss.length(); k++) {
-                                sb.append("0");
-                            }
-                            sb.append(ss.toUpperCase());
-                        } else {
-                            sb.append(ch);
+        private fun escape(s: String, sb: StringBuilder) {
+            val len = s.length
+            for (i in 0 until len) {
+                val ch = s[i]
+                when (ch) {
+                    '"' -> sb.append("\\\"")
+                    '\\' -> sb.append("\\\\")
+                    '\b' -> sb.append("\\b")
+                    '\u000c' -> sb.append("\\f")
+                    '\n' -> sb.append("\\n")
+                    '\r' -> sb.append("\\r")
+                    '\t' -> sb.append("\\t")
+                    '€' -> sb.append('€')
+                    else -> if (ch <= '\u001F' || ch >= '\u007F' && ch <= '\u009F' || ch >= '\u2000' && ch <= '\u20FF') {
+                        val ss = Integer.toHexString(ch.code)
+                        sb.append("\\u")
+                        var k = 0
+                        while (k < 4 - ss.length) {
+                            sb.append("0")
+                            k++
                         }
-                        break;
+                        sb.append(ss.uppercase(Locale.getDefault()))
+                    } else {
+                        sb.append(ch)
+                    }
                 }
             }
         }
     }
 
-    public static class ParseException extends RuntimeException {
-        private final int offset;
-        private final int line;
-        private final int column;
+    class ParseException(
+        message: String?,
+        @JvmField val offset: Int,
+        @JvmField val line: Int,
+        @JvmField val column: Int
+    ) :
+        RuntimeException(String.format("%s at %d:%d", message, line, column))
 
-        public ParseException(String message, int offset, int line, int column) {
-            super(String.format("%s at %d:%d", message, line, column));
-            this.offset = offset;
-            this.line = line;
-            this.column = column;
+    class JsonParser(private val json: String) {
+        private var index = 0
+        private var line = 1
+        private var lineOffset = 0
+        private var current = 0
+        private var captureBuffer: StringBuilder? = null
+        private var captureStart: Int
+
+        init {
+            captureStart = -1
         }
 
-        public int getOffset() {
-            return offset;
-        }
-
-        public int getLine() {
-            return line;
-        }
-
-        public int getColumn() {
-            return column;
-        }
-    }
-
-    public static class JsonParser {
-        private final String json;
-        private int index;
-        private int line;
-        private int lineOffset;
-        private int current;
-        private StringBuilder captureBuffer;
-        private int captureStart;
-
-        public JsonParser(String string) {
-            this.json = string;
-            line = 1;
-            captureStart = -1;
-        }
-
-        public Object parse() {
-            read();
-            skipWhiteSpace();
-            final Object result = readValue();
-            skipWhiteSpace();
-            if (!isEndOfText()) {
-                throw error("Unexpected character");
+        fun parse(): Any? {
+            read()
+            skipWhiteSpace()
+            val result = readValue()
+            skipWhiteSpace()
+            if (!isEndOfText) {
+                throw error("Unexpected character")
             }
-            return result;
+            return result
         }
 
-        private Object readValue() {
-            switch (current) {
-                case 'n':
-                    return readNull();
-                case 't':
-                    return readTrue();
-                case 'f':
-                    return readFalse();
-                case '"':
-                    return readString();
-                case '[':
-                    return readArray();
-                case '{':
-                    return readObject();
-                case '-':
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    return readNumber();
-                default:
-                    throw expected("value");
+        private fun readValue(): Any? {
+            return when (current.toChar()) {
+                'n' -> readNull()
+                't' -> readTrue()
+                'f' -> readFalse()
+                '"' -> readString()
+                '[' -> readArray()
+                '{' -> readObject()
+                '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> readNumber()
+                else -> throw expected("value")
             }
         }
 
-        private List<Object> readArray() {
-            read();
-            List<Object> array = new ArrayList<>();
-            skipWhiteSpace();
+        private fun readArray(): List<Any?> {
+            read()
+            val array: MutableList<Any?> = ArrayList()
+            skipWhiteSpace()
             if (readChar(']')) {
-                return array;
+                return array
             }
             do {
-                skipWhiteSpace();
-                array.add(readValue());
-                skipWhiteSpace();
-            } while (readChar(','));
+                skipWhiteSpace()
+                array.add(readValue())
+                skipWhiteSpace()
+            } while (readChar(','))
             if (!readChar(']')) {
-                throw expected("',' or ']'");
+                throw expected("',' or ']'")
             }
-            return array;
+            return array
         }
 
-        private Map<String, Object> readObject() {
-            read();
-            Map<String, Object> object = new LinkedHashMap<>();
-            skipWhiteSpace();
+        private fun readObject(): Map<String, Any?> {
+            read()
+            val `object`: MutableMap<String, Any?> = LinkedHashMap()
+            skipWhiteSpace()
             if (readChar('}')) {
-                return object;
+                return `object`
             }
             do {
-                skipWhiteSpace();
-                String name = readName();
-                skipWhiteSpace();
+                skipWhiteSpace()
+                val name = readName()
+                skipWhiteSpace()
                 if (!readChar(':')) {
-                    throw expected("':'");
+                    throw expected("':'")
                 }
-                skipWhiteSpace();
-                object.put(name, readValue());
-                skipWhiteSpace();
-            } while (readChar(','));
+                skipWhiteSpace()
+                `object`[name] = readValue()
+                skipWhiteSpace()
+            } while (readChar(','))
             if (!readChar('}')) {
-                throw expected("',' or '}'");
+                throw expected("',' or '}'")
             }
-            return object;
+            return `object`
         }
 
-        private String readName() {
-            if (current != '"') {
-                throw expected("name");
+        private fun readName(): String {
+            if (current != '"'.code) {
+                throw expected("name")
             }
-            return readString();
+            return readString()
         }
 
-        private String readNull() {
-            read();
-            readRequiredChar('u');
-            readRequiredChar('l');
-            readRequiredChar('l');
-            return null;
+        private fun readNull(): String? {
+            read()
+            readRequiredChar('u')
+            readRequiredChar('l')
+            readRequiredChar('l')
+            return null
         }
 
-        private Boolean readTrue() {
-            read();
-            readRequiredChar('r');
-            readRequiredChar('u');
-            readRequiredChar('e');
-            return Boolean.TRUE;
+        private fun readTrue(): Boolean {
+            read()
+            readRequiredChar('r')
+            readRequiredChar('u')
+            readRequiredChar('e')
+            return java.lang.Boolean.TRUE
         }
 
-        private Boolean readFalse() {
-            read();
-            readRequiredChar('a');
-            readRequiredChar('l');
-            readRequiredChar('s');
-            readRequiredChar('e');
-            return Boolean.FALSE;
+        private fun readFalse(): Boolean {
+            read()
+            readRequiredChar('a')
+            readRequiredChar('l')
+            readRequiredChar('s')
+            readRequiredChar('e')
+            return java.lang.Boolean.FALSE
         }
 
-        private void readRequiredChar(char ch) {
+        private fun readRequiredChar(ch: Char) {
             if (!readChar(ch)) {
-                throw expected("'" + ch + "'");
+                throw expected("'$ch'")
             }
         }
 
-        private String readString() {
-            read();
-            startCapture();
-            while (current != '"') {
-                if (current == '\\') {
-                    pauseCapture();
-                    readEscape();
-                    startCapture();
+        private fun readString(): String {
+            read()
+            startCapture()
+            while (current != '"'.code) {
+                if (current == '\\'.code) {
+                    pauseCapture()
+                    readEscape()
+                    startCapture()
                 } else if (current < 0x20) {
-                    throw expected("valid string character");
+                    throw expected("valid string character")
                 } else {
-                    read();
+                    read()
                 }
             }
-            String string = endCapture();
-            read();
-            return string;
+            val string = endCapture()
+            read()
+            return string
         }
 
-        private void readEscape() {
-            read();
-            switch (current) {
-                case '"':
-                case '/':
-                case '\\':
-                    captureBuffer.append((char) current);
-                    break;
-                case 'b':
-                    captureBuffer.append('\b');
-                    break;
-                case 'f':
-                    captureBuffer.append('\f');
-                    break;
-                case 'n':
-                    captureBuffer.append('\n');
-                    break;
-                case 'r':
-                    captureBuffer.append('\r');
-                    break;
-                case 't':
-                    captureBuffer.append('\t');
-                    break;
-                case 'u':
-                    char[] hexChars = new char[4];
-                    boolean isHexCharsDigits = true;
-                    for (int i = 0; i < 4; i++) {
-                        read();
-                        if (!isHexDigit()) {
-                            isHexCharsDigits = false;
+        private fun readEscape() {
+            read()
+            when (current.toChar()) {
+                '"', '/', '\\' -> captureBuffer!!.append(current.toChar())
+                'b' -> captureBuffer!!.append('\b')
+                'f' -> captureBuffer!!.append('\u000c')
+                'n' -> captureBuffer!!.append('\n')
+                'r' -> captureBuffer!!.append('\r')
+                't' -> captureBuffer!!.append('\t')
+                'u' -> {
+                    val hexChars = CharArray(4)
+                    var isHexCharsDigits = true
+                    var i = 0
+                    while (i < 4) {
+                        read()
+                        if (!isHexDigit) {
+                            isHexCharsDigits = false
                         }
-                        hexChars[i] = (char) current;
+                        hexChars[i] = current.toChar()
+                        i++
                     }
                     if (isHexCharsDigits) {
-                        captureBuffer.append((char) Integer.parseInt(new String(hexChars), 16));
+                        captureBuffer!!.append(String(hexChars).toInt(16).toChar())
                     } else {
                         captureBuffer
-                                .append("\\u")
-                                .append(hexChars[0])
-                                .append(hexChars[1])
-                                .append(hexChars[2])
-                                .append(hexChars[3]);
+                            ?.append("\\u")
+                            ?.append(hexChars[0])
+                            ?.append(hexChars[1])
+                            ?.append(hexChars[2])
+                            ?.append(hexChars[3])
                     }
-                    break;
-                default:
-                    throw expected("valid escape sequence");
+                }
+
+                else -> throw expected("valid escape sequence")
             }
-            read();
+            read()
         }
 
-        private Number readNumber() {
-            startCapture();
-            readChar('-');
-            int firstDigit = current;
+        private fun readNumber(): Number {
+            startCapture()
+            readChar('-')
+            val firstDigit = current
             if (!readDigit()) {
-                throw expected(DIGIT);
+                throw expected(DIGIT)
             }
-            if (firstDigit != '0') {
+            if (firstDigit != '0'.code) {
                 while (readDigit()) {
                     // ignored
                 }
             }
-            readFraction();
-            readExponent();
-            final String number = endCapture();
-            final Number result;
-            if (number.contains(".") || number.contains("e") || number.contains("E")) {
-                if (number.length() > 9
-                        || (number.contains(".") && number.length() - number.lastIndexOf('.') > 2)
-                                && number.charAt(number.length() - 1) == '0') {
-                    result = new java.math.BigDecimal(number);
+            readFraction()
+            readExponent()
+            val number = endCapture()
+            val result: Number
+            result = if (number.contains(".") || number.contains("e") || number.contains("E")) {
+                if (number.length > 9
+                    || number.contains(".") && number.length - number.lastIndexOf('.') > 2
+                    && number[number.length - 1] == '0'
+                ) {
+                    BigDecimal(number)
                 } else {
-                    result = Double.valueOf(number);
+                    number.toDouble()
                 }
             } else {
-                if (number.length() > 19) {
-                    result = new java.math.BigInteger(number);
+                if (number.length > 19) {
+                    BigInteger(number)
                 } else {
-                    result = Long.valueOf(number);
+                    number.toLong()
                 }
             }
-            return result;
+            return result
         }
 
-        private boolean readFraction() {
+        private fun readFraction(): Boolean {
             if (!readChar('.')) {
-                return false;
+                return false
             }
             if (!readDigit()) {
-                throw expected(DIGIT);
+                throw expected(DIGIT)
             }
             while (readDigit()) {
                 // ignored
             }
-            return true;
+            return true
         }
 
-        private boolean readExponent() {
+        private fun readExponent(): Boolean {
             if (!readChar('e') && !readChar('E')) {
-                return false;
+                return false
             }
             if (!readChar('+')) {
-                readChar('-');
+                readChar('-')
             }
             if (!readDigit()) {
-                throw expected(DIGIT);
+                throw expected(DIGIT)
             }
             while (readDigit()) {
                 // ignored
             }
-            return true;
+            return true
         }
 
-        private boolean readChar(char ch) {
-            if (current != ch) {
-                return false;
+        private fun readChar(ch: Char): Boolean {
+            if (current != ch.code) {
+                return false
             }
-            read();
-            return true;
+            read()
+            return true
         }
 
-        private boolean readDigit() {
-            if (!isDigit()) {
-                return false;
+        private fun readDigit(): Boolean {
+            if (!isDigit) {
+                return false
             }
-            read();
-            return true;
+            read()
+            return true
         }
 
-        private void skipWhiteSpace() {
-            while (isWhiteSpace()) {
-                read();
+        private fun skipWhiteSpace() {
+            while (isWhiteSpace) {
+                read()
             }
         }
 
-        private void read() {
-            if (index == json.length()) {
-                current = -1;
-                return;
+        private fun read() {
+            if (index == json.length) {
+                current = -1
+                return
             }
-            if (current == '\n') {
-                line++;
-                lineOffset = index;
+            if (current == '\n'.code) {
+                line++
+                lineOffset = index
             }
-            current = json.charAt(index++);
+            current = json[index++].code
         }
 
-        private void startCapture() {
+        private fun startCapture() {
             if (captureBuffer == null) {
-                captureBuffer = new StringBuilder();
+                captureBuffer = StringBuilder()
             }
-            captureStart = index - 1;
+            captureStart = index - 1
         }
 
-        private void pauseCapture() {
-            captureBuffer.append(json, captureStart, index - 1);
-            captureStart = -1;
+        private fun pauseCapture() {
+            captureBuffer!!.append(json, captureStart, index - 1)
+            captureStart = -1
         }
 
-        private String endCapture() {
-            int end = current == -1 ? index : index - 1;
-            String captured;
-            if (captureBuffer.length() > 0) {
-                captureBuffer.append(json, captureStart, end);
-                captured = captureBuffer.toString();
-                captureBuffer.setLength(0);
+        private fun endCapture(): String {
+            val end = if (current == -1) index else index - 1
+            val captured: String
+            if (captureBuffer!!.length > 0) {
+                captureBuffer!!.append(json, captureStart, end)
+                captured = captureBuffer.toString()
+                captureBuffer!!.setLength(0)
             } else {
-                captured = json.substring(captureStart, end);
+                captured = json.substring(captureStart, end)
             }
-            captureStart = -1;
-            return captured;
+            captureStart = -1
+            return captured
         }
 
-        private ParseException expected(String expected) {
-            if (isEndOfText()) {
-                return error("Unexpected end of input");
-            }
-            return error("Expected " + expected);
+        private fun expected(expected: String): ParseException {
+            return if (isEndOfText) {
+                error("Unexpected end of input")
+            } else error("Expected $expected")
         }
 
-        private ParseException error(String message) {
-            int absIndex = index;
-            int column = absIndex - lineOffset;
-            int offset = isEndOfText() ? absIndex : absIndex - 1;
-            return new ParseException(message, offset, line, column - 1);
+        private fun error(message: String): ParseException {
+            val absIndex = index
+            val column = absIndex - lineOffset
+            val offset = if (isEndOfText) absIndex else absIndex - 1
+            return ParseException(message, offset, line, column - 1)
         }
 
-        private boolean isWhiteSpace() {
-            return current == ' ' || current == '\t' || current == '\n' || current == '\r';
-        }
-
-        private boolean isDigit() {
-            return current >= '0' && current <= '9';
-        }
-
-        private boolean isHexDigit() {
-            return isDigit()
-                    || current >= 'a' && current <= 'f'
-                    || current >= 'A' && current <= 'F';
-        }
-
-        private boolean isEndOfText() {
-            return current == -1;
-        }
-    }
-
-    public static String toJson(Collection collection, JsonStringBuilder.Step identStep) {
-        final JsonStringBuilder builder = new JsonStringBuilder(identStep);
-        JsonArray.writeJson(collection, builder);
-        return builder.toString();
-    }
-
-    public static String toJson(Collection collection) {
-        return toJson(collection, JsonStringBuilder.Step.TWO_SPACES);
-    }
-
-    public static String toJson(Map map, JsonStringBuilder.Step identStep) {
-        final JsonStringBuilder builder = new JsonStringBuilder(identStep);
-        JsonObject.writeJson(map, builder);
-        return builder.toString();
-    }
-
-    public static String toJson(Map map) {
-        return toJson(map, JsonStringBuilder.Step.TWO_SPACES);
-    }
-
-    public static Object fromJson(String string) {
-        return new JsonParser(string).parse();
-    }
-
-    public static String formatJson(String json, JsonStringBuilder.Step identStep) {
-        Object result = fromJson(json);
-        if (result instanceof Map) {
-            return toJson((Map) result, identStep);
-        }
-        return toJson((List) result, identStep);
-    }
-
-    public static String formatJson(String json) {
-        return formatJson(json, JsonStringBuilder.Step.TWO_SPACES);
+        private val isWhiteSpace: Boolean
+            private get() = current == ' '.code || current == '\t'.code || current == '\n'.code || current == '\r'.code
+        private val isDigit: Boolean
+            private get() = current >= '0'.code && current <= '9'.code
+        private val isHexDigit: Boolean
+            private get() = isDigit || current >= 'a'.code && current <= 'f'.code || current >= 'A'.code && current <= 'F'.code
+        private val isEndOfText: Boolean
+            private get() = current == -1
     }
 }

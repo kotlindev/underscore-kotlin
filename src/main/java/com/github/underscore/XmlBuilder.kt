@@ -160,7 +160,7 @@ open class XmlBuilder internal constructor(rootName: String) {
         return U.toXml(data)
     }
 
-    fun toJson(identStep: JsonStringBuilder.Step?): String {
+    fun toJson(identStep: JsonStringBuilder.Step): String {
         return Json.toJson(data, identStep)
     }
 
