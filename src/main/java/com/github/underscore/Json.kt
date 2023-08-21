@@ -156,7 +156,7 @@ object Json {
         fun writeJson(array: ByteArray?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').incIndent().newLine()
@@ -173,7 +173,7 @@ object Json {
         fun writeJson(array: ShortArray?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').incIndent().newLine()
@@ -190,7 +190,7 @@ object Json {
         fun writeJson(array: IntArray?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').incIndent().newLine()
@@ -207,7 +207,7 @@ object Json {
         fun writeJson(array: LongArray?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').incIndent().newLine()
@@ -224,7 +224,7 @@ object Json {
         fun writeJson(array: FloatArray?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').incIndent().newLine()
@@ -241,7 +241,7 @@ object Json {
         fun writeJson(array: DoubleArray?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').incIndent().newLine()
@@ -258,7 +258,7 @@ object Json {
         fun writeJson(array: BooleanArray?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').incIndent().newLine()
@@ -275,7 +275,7 @@ object Json {
         fun writeJson(array: CharArray?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').incIndent().newLine()
@@ -292,7 +292,7 @@ object Json {
         fun writeJson(array: Array<Any?>?, builder: JsonStringBuilder) {
             if (array == null) {
                 builder.append(NULL)
-            } else if (array.size == 0) {
+            } else if (array.isEmpty()) {
                 builder.append("[]")
             } else {
                 builder.append('[').newLine().incIndent().fillSpaces()
@@ -314,7 +314,7 @@ object Json {
             }
             val iter: Iterator<*> = map.entries.iterator()
             builder.append('{').incIndent()
-            if (!map.isEmpty()) {
+            if (map.isNotEmpty()) {
                 builder.newLine()
             }
             while (iter.hasNext()) {
@@ -366,6 +366,7 @@ object Json {
             }
         }
 
+        @Suppress("UNCHECKED_CAST")
         private fun doWriteJson(value: Any, builder: JsonStringBuilder) {
             if (value is ByteArray) {
                 JsonArray.writeJson(value, builder)
@@ -536,7 +537,7 @@ object Json {
             readRequiredChar('r')
             readRequiredChar('u')
             readRequiredChar('e')
-            return java.lang.Boolean.TRUE
+            return true
         }
 
         private fun readFalse(): Boolean {
@@ -545,7 +546,7 @@ object Json {
             readRequiredChar('l')
             readRequiredChar('s')
             readRequiredChar('e')
-            return java.lang.Boolean.FALSE
+            return false
         }
 
         private fun readRequiredChar(ch: Char) {
@@ -626,8 +627,7 @@ object Json {
             readFraction()
             readExponent()
             val number = endCapture()
-            val result: Number
-            result = if (number.contains(".") || number.contains("e") || number.contains("E")) {
+            val result: Number = if (number.contains(".") || number.contains("e") || number.contains("E")) {
                 if (number.length > 9
                     || number.contains(".") && number.length - number.lastIndexOf('.') > 2
                     && number[number.length - 1] == '0'
@@ -724,7 +724,7 @@ object Json {
         private fun endCapture(): String {
             val end = if (current == -1) index else index - 1
             val captured: String
-            if (captureBuffer!!.length > 0) {
+            if (captureBuffer!!.isNotEmpty()) {
                 captureBuffer!!.append(json, captureStart, end)
                 captured = captureBuffer.toString()
                 captureBuffer!!.setLength(0)
@@ -749,12 +749,12 @@ object Json {
         }
 
         private val isWhiteSpace: Boolean
-            private get() = current == ' '.code || current == '\t'.code || current == '\n'.code || current == '\r'.code
+            get() = current == ' '.code || current == '\t'.code || current == '\n'.code || current == '\r'.code
         private val isDigit: Boolean
-            private get() = current >= '0'.code && current <= '9'.code
+            get() = current >= '0'.code && current <= '9'.code
         private val isHexDigit: Boolean
-            private get() = isDigit || current >= 'a'.code && current <= 'f'.code || current >= 'A'.code && current <= 'F'.code
+            get() = isDigit || current >= 'a'.code && current <= 'f'.code || current >= 'A'.code && current <= 'F'.code
         private val isEndOfText: Boolean
-            private get() = current == -1
+            get() = current == -1
     }
 }
