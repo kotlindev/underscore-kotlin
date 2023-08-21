@@ -55,15 +55,15 @@ object Xml {
     private const val YES = "yes"
     private const val TEXT = "#text"
     private const val NUMBER = "-number"
-    private const val ELEMENT = "<" + ELEMENT_TEXT + ">"
-    private const val CLOSED_ELEMENT = "</" + ELEMENT_TEXT + ">"
+    private const val ELEMENT = "<$ELEMENT_TEXT>"
+    private const val CLOSED_ELEMENT = "</$ELEMENT_TEXT>"
     private const val EMPTY_ELEMENT = ELEMENT + CLOSED_ELEMENT
-    private const val NULL_TRUE = " " + NULL + "=\"true\"/>"
+    private const val NULL_TRUE = " $NULL=\"true\"/>"
     private const val NUMBER_TEXT = " number=\"true\""
-    private const val NUMBER_TRUE = NUMBER_TEXT + ">"
+    private const val NUMBER_TRUE = "$NUMBER_TEXT>"
     private const val ARRAY = "-array"
     private const val ARRAY_TRUE = " array=\"true\""
-    private const val NULL_ELEMENT = "<" + ELEMENT_TEXT + NULL_TRUE
+    private const val NULL_ELEMENT = "<$ELEMENT_TEXT$NULL_TRUE"
     private const val BOOLEAN = "-boolean"
     private const val TRUE = "true"
     private const val SELF_CLOSING = "-self-closing"
@@ -74,7 +74,7 @@ object Xml {
     private const val XML_HEADER = "<?xml "
     private const val DOCTYPE_TEXT = "!DOCTYPE"
     private const val ROOT = "root"
-    private const val DOCTYPE_HEADER = "<" + DOCTYPE_TEXT + " "
+    private const val DOCTYPE_HEADER = "<$DOCTYPE_TEXT "
     private val XML_UNESCAPE: MutableMap<String, String> = HashMap()
     private val DOCUMENT = Document.createDocument()
 
@@ -258,13 +258,13 @@ object Xml {
             ) {
                 BigDecimal(number)
             } else {
-                java.lang.Double.valueOf(number)
+                number.toDouble()
             }
         } else {
             if (number.length > 19) {
                 BigInteger(number)
             } else {
-                java.lang.Long.valueOf(number)
+                number.toLong()
             }
         }
         return localValue
@@ -355,7 +355,7 @@ object Xml {
         if (map.containsKey(BOOLEAN) && TRUE == map[BOOLEAN] && map.containsKey(TEXT)) {
             localMap2 = (localMap as LinkedHashMap<String?, Any?>).clone() as MutableMap<String?, Any?>
             localMap2.remove(BOOLEAN)
-            localMap2[TEXT] = java.lang.Boolean.valueOf(localMap[TEXT].toString())
+            localMap2[TEXT] = localMap[TEXT].toString().toBoolean()
         } else {
             localMap2 = localMap
         }
@@ -483,8 +483,8 @@ object Xml {
     @JvmStatic
     fun parseAttributes(source: String): Map<String, String> {
         val result: MutableMap<String, String> = LinkedHashMap()
-        val key = java.lang.StringBuilder()
-        val value = java.lang.StringBuilder()
+        val key = StringBuilder()
+        val value = StringBuilder()
         var quoteFound = false
         var equalFound = false
         var index = 0
@@ -768,7 +768,7 @@ object Xml {
         }
     }
 
-    fun fromXmlWithElementMapper(
+    private fun fromXmlWithElementMapper(
         xml: String, elementMapper: BiFunction<Any, Set<String>, String?>
     ): Any {
         return try {
@@ -795,8 +795,7 @@ object Xml {
             xml
         ) { `object`: Any, namespaces: Set<String> ->
             val localString = `object`.toString()
-            val result: String
-            result = if (localString.startsWith("-")
+            val result: String = if (localString.startsWith("-")
                 && namespaces.contains(
                     localString.substring(
                         1, Math.max(1, localString.indexOf(':'))
