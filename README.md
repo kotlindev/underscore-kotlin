@@ -1,6 +1,6 @@
 underscore-kotlin 
 =================
-
+[![Java CI with Maven](https://github.com/kotlindev/underscore-kotlin/actions/workflows/maven.yml/badge.svg)](https://github.com/kotlindev/underscore-kotlin/actions/workflows/maven.yml)
 
 Requirements
 ============
