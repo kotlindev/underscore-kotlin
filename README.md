@@ -1,5 +1,6 @@
 underscore-kotlin 
 =================
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.javadev/underscore-kotlin.svg)](https://central.sonatype.com/artifact/com.github.javadev/underscore-kotlin/1.0)
 [![Java CI with Maven](https://github.com/kotlindev/underscore-kotlin/actions/workflows/maven.yml/badge.svg)](https://github.com/kotlindev/underscore-kotlin/actions/workflows/maven.yml)
 
 Requirements
@@ -14,8 +15,8 @@ To configure your Maven project, add the following code to your pom.xml file:
 ```xml
 <dependencies>
   <dependency>
-    <groupId>com.github.kotlindev</groupId>
-    <artifactId>underscore</artifactId>
+    <groupId>com.github.javadev</groupId>
+    <artifactId>underscore-kotlin</artifactId>
     <version>1.0</version>
   </dependency>
   ...
@@ -25,7 +26,7 @@ To configure your Maven project, add the following code to your pom.xml file:
 Gradle configuration:
 
 ```groovy
-implementation 'com.github.kotlindev:underscore:1.0'
+implementation 'com.github.javadev:underscore-kotlin:1.0'
 ```
 
 ### Usage
