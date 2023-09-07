@@ -6,7 +6,7 @@ underscore-kotlin
 Requirements
 ============
 
-Koltin 1.9
+Koltin 1.9, [Java 11 and later](https://github.com/javadev/underscore-java) or [Java 17](https://github.com/javadev/underscore-java17)
 
 ## Installation
 
@@ -306,6 +306,6 @@ Underscore-kotlin is a kotlin port of [Underscore.js](https://underscorejs.org/)
 In addition to porting Underscore's functionality, Underscore-kotlin includes matching unit tests.
 
 For docs, license, tests, and downloads, see:
-https://kotlindev.github.io/underscore-kotlin
+https://javadev.github.io/underscore
 
 Thanks to Jeremy Ashkenas and all contributors to Underscore.js.
