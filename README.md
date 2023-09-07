@@ -306,6 +306,6 @@ Underscore-kotlin is a kotlin port of [Underscore.js](https://underscorejs.org/)
 In addition to porting Underscore's functionality, Underscore-kotlin includes matching unit tests.
 
 For docs, license, tests, and downloads, see:
-https://javadev.github.io/underscore
+[https://javadev.github.io/underscore](https://javadev.github.io/underscore-java)
 
 Thanks to Jeremy Ashkenas and all contributors to Underscore.js.
