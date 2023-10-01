@@ -1,7 +1,9 @@
 underscore-kotlin 
 =================
-[![Maven Central](https://img.shields.io/maven-central/v/com.github.javadev/underscore-kotlin.svg)](https://central.sonatype.com/artifact/com.github.javadev/underscore-kotlin/1.0)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.javadev/underscore-kotlin.svg)](https://central.sonatype.com/artifact/com.github.javadev/underscore-kotlin/1.1)
 [![Java CI with Maven](https://github.com/kotlindev/underscore-kotlin/actions/workflows/maven.yml/badge.svg)](https://github.com/kotlindev/underscore-kotlin/actions/workflows/maven.yml)
+[![javadoc](https://javadoc.io/badge2/com.github.javadev/underscore-kotlin/javadoc.svg)](https://javadoc.io/doc/com.github.javadev/underscore-kotlin)
+
 
 Requirements
 ============
