@@ -27,7 +27,7 @@
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <kotlin.version>1.9.21</kotlin.version>
+    <kotlin.version>1.9.22</kotlin.version>
   </properties>
   <ciManagement>
     <system>GitHub Actions</system>
@@ -163,7 +163,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.10</version>
+        <version>0.8.11</version>
         <configuration>
           <excludes>
             <exclude>**/U$BaseHttpSslSocketFactory*.class</exclude>
