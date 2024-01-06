@@ -124,6 +124,8 @@ class XmlBuilderTest {
                 return "[\"abc\u0010\"]";
             }
         }
+        XmlBuilder xmlBuilder = new XmlBuilderCustom("root");
+        assertThrows(IllegalArgumentException.class, xmlBuilder::getDocument);
     }
 
     @Test
