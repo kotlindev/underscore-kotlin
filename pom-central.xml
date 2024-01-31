@@ -4,7 +4,7 @@
   <groupId>com.github.javadev</groupId>
   <artifactId>underscore-kotlin</artifactId>
   <packaging>jar</packaging>
-  <version>1.3</version>
+  <version>1.4</version>
   <name>kotlin port of Underscore.js</name>
   <description>The kotlin port of Underscore.js</description>
   <url>https://github.com/kotlindev/underscore-kotlin</url>
