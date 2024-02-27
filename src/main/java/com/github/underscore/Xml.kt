@@ -75,6 +75,7 @@ object Xml {
     private const val DOCTYPE_TEXT = "!DOCTYPE"
     private const val ROOT = "root"
     private const val DOCTYPE_HEADER = "<$DOCTYPE_TEXT "
+    private val SKIPPED_CHARS = setOf(' ', '\n', '\r')
     private val XML_UNESCAPE: MutableMap<String, String> = HashMap()
     private val DOCUMENT = Document.createDocument()
 
@@ -502,7 +503,7 @@ object Xml {
                     equalFound = false
                 }
                 quoteFound = !quoteFound
-            } else if (quoteFound || source[index] == ' ') {
+            } else if (quoteFound || SKIPPED_CHARS.contains(source[index])) {
                 if (quoteFound) {
                     value.append(source[index])
                 }
