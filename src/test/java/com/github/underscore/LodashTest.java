@@ -871,7 +871,7 @@ class LodashTest {
                         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                                 + "<root empty-array=\"true\"></root>"));
         assertEquals(
-                "{\n" + "  \"a\": null,\n" + "  \"#omit-xml-declaration\": \"yes\"\n" + "}",
+                "{\n  \"a\": null,\n  \"#omit-xml-declaration\": \"yes\"\n}",
                 U.xmlToJson("<a/>", U.XmlToJsonMode.REPLACE_SELF_CLOSING_WITH_NULL));
         assertEquals(
                 "{\n"
@@ -897,7 +897,7 @@ class LodashTest {
                         "<c><b></b><b></b><a/></c>",
                         U.XmlToJsonMode.REPLACE_EMPTY_TAG_WITH_STRING));
         assertEquals(
-                "{\n" + "  \"a\": \"\",\n" + "  \"#omit-xml-declaration\": \"yes\"\n" + "}",
+                "{\n  \"a\": \"\",\n  \"#omit-xml-declaration\": \"yes\"\n}",
                 U.xmlToJson("<a/>", U.XmlToJsonMode.REPLACE_SELF_CLOSING_WITH_STRING));
         assertEquals(
                 "{\n"
@@ -957,9 +957,69 @@ class LodashTest {
     @Test
     void xmlToJson2() {
         assertEquals(
-                "{\n" + "  \"debug\": \"&amp;\"\n" + "}",
+                "{\n  \"debug\": \"&amp;\"\n}",
                 U.xmlToJson(
                         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<debug>&amp;amp;</debug>"));
+    }
+
+    @Test
+    void xmpToJson3() {
+        Map<String, Object> map2 = new LinkedHashMap<>();
+        List<Object> list = new ArrayList<>();
+        list.add(new ArrayList<Object>());
+        map2.put("list", list);
+        U.replaceMinusWithAt(map2);
+        assertEquals(
+                "{\n"
+                        + "  \"a\": {\n"
+                        + "    \"@c\": \"1\",\n"
+                        + "    \"b\": [\n"
+                        + "      {\n"
+                        + "      },\n"
+                        + "      {\n"
+                        + "      }\n"
+                        + "    ]\n"
+                        + "  },\n"
+                        + "  \"#omit-xml-declaration\": \"yes\"\n"
+                        + "}",
+                U.xmlToJson(
+                        "<a c=\"1\"><b></b><b></b></a>", U.XmlToJsonMode.REPLACE_MINUS_WITH_AT));
+        Map<String, Object> map3 = new LinkedHashMap<>();
+        List<Object> list2 = new ArrayList<>();
+        list2.add(new ArrayList<Object>());
+        map3.put("list", list2);
+        U.replaceMinusWithAt(map3);
+        U.replaceMinusWithAt(null);
+        U.xmlToJson(
+                "<a c=\"1\"><b></b><b></b></a>",
+                U.XmlToJsonMode.REPLACE_EMPTY_TAG_WITH_NULL_AND_MINUS_WITH_AT);
+    }
+
+    @Test
+    void xmpToJson4() {
+        assertEquals(
+                "{\n"
+                        + "  \"z:catalog\": {\n"
+                        + "    \"-xmlns:xsi\": \"http://www.w3.org/2001/XMLSchema-instance\",\n"
+                        + "    \"-xmlns:z\": \"www.microsoft.com/zzz\",\n"
+                        + "    \"book\": {\n"
+                        + "      \"-xsi:noNamespaceSchemaLocation\": \"http://www.example.com/MyData.xsd\",\n"
+                        + "      \"-id\": \"bk101\",\n"
+                        + "      \"title\": \"Presenting XML\",\n"
+                        + "      \"author\": \"Richard Light\"\n"
+                        + "    }\n"
+                        + "  },\n"
+                        + "  \"#omit-xml-declaration\": \"yes\"\n"
+                        + "}",
+                U.xmlToJson(
+                        "<z:catalog xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                                + "xmlns:z=\"www.microsoft.com/zzz\">\n"
+                                + "   <book xsi:noNamespaceSchemaLocation=\"http://www.example.com/MyData.xsd\"\r\n"
+                                + "         id=\"bk101\">\n"
+                                + "      <title>Presenting XML</title>\n"
+                                + "      <author>Richard Light</author>\n"
+                                + "   </book>\n"
+                                + "</z:catalog>"));
     }
 
     @Test
@@ -977,7 +1037,7 @@ class LodashTest {
                 U.xmlOrJsonToJson(
                         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                                 + "<root empty-array=\"true\"></root>"));
-        assertEquals("{\n" + "  \"a\": 1\n" + "}", U.xmlOrJsonToJson("{\"a\":1}"));
+        assertEquals("{\n  \"a\": 1\n}", U.xmlOrJsonToJson("{\"a\":1}"));
         assertEquals("[\n]", U.xmlOrJsonToJson("[]"));
         assertEquals("", U.xmlOrJsonToJson(""));
     }
@@ -992,7 +1052,7 @@ class LodashTest {
                         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                                 + "<root empty-array=\"true\"></root>"));
         assertEquals(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<a number=\"true\">1</a>",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a number=\"true\">1</a>",
                 U.xmlOrJsonToXml("{\"a\":1}"));
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -1041,7 +1101,7 @@ class LodashTest {
         map.put("-self-closing", "false");
         U.rename(map, "test", "test1");
         Map<String, Object> newMap = U.rename(map, "-self-closing", "-self-closing1");
-        assertEquals("{\n" + "  \"-self-closing1\": \"false\"\n" + "}", U.toJson(newMap));
+        assertEquals("{\n  \"-self-closing1\": \"false\"\n}", U.toJson(newMap));
         Map<String, Object> map2 = new LinkedHashMap<>();
         List<Object> list = new ArrayList<>();
         list.add(new ArrayList<Object>());
@@ -1192,7 +1252,7 @@ class LodashTest {
         map.put("-self-closing", "false");
         U.rename(map, "test", "test1");
         Map<String, Object> newMap = U.update(map, map);
-        assertEquals("{\n" + "  \"-self-closing\": \"false\"\n" + "}", U.toJson(newMap));
+        assertEquals("{\n  \"-self-closing\": \"false\"\n}", U.toJson(newMap));
         Map<String, Object> map2 = new LinkedHashMap<>();
         List<Object> list = new ArrayList<>();
         list.add(new ArrayList<Object>());
@@ -1214,7 +1274,7 @@ class LodashTest {
         map.put("-self-closing", "false");
         U.setValue(map, "test", "test1");
         Map<String, Object> newMap = U.setValue(map, "-self-closing", "true");
-        assertEquals("{\n" + "  \"-self-closing\": \"true\"\n" + "}", U.toJson(newMap));
+        assertEquals("{\n  \"-self-closing\": \"true\"\n}", U.toJson(newMap));
         Map<String, Object> map2 = new LinkedHashMap<>();
         List<Object> list = new ArrayList<>();
         list.add(new ArrayList<Object>());
@@ -2109,7 +2169,7 @@ class LodashTest {
     void issue306() {
         String json =
                 U.objectBuilder().add("firstName", "John").add("lastName", (Object) null).toJson();
-        assertEquals("{\n  \"firstName\": \"John\",\n" + "  \"lastName\": null\n" + "}", json);
+        assertEquals("{\n  \"firstName\": \"John\",\n  \"lastName\": null\n}", json);
     }
 
     @Test
