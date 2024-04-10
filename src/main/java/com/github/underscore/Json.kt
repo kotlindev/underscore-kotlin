@@ -402,9 +402,7 @@ object Json {
         }
 
         private fun escape(s: String, sb: StringBuilder) {
-            val len = s.length
-            for (i in 0 until len) {
-                val ch = s[i]
+            s.forEach { ch ->
                 when (ch) {
                     '"' -> sb.append("\\\"")
                     '\\' -> sb.append("\\\\")
@@ -414,15 +412,8 @@ object Json {
                     '\r' -> sb.append("\\r")
                     '\t' -> sb.append("\\t")
                     '€' -> sb.append('€')
-                    else -> if (ch <= '\u001F' || ch >= '\u007F' && ch <= '\u009F' || ch >= '\u2000' && ch <= '\u20FF') {
-                        val ss = Integer.toHexString(ch.code)
-                        sb.append("\\u")
-                        var k = 0
-                        while (k < 4 - ss.length) {
-                            sb.append("0")
-                            k++
-                        }
-                        sb.append(ss.uppercase(Locale.getDefault()))
+                    else -> if (ch <= '\u001F' || ch in '\u007F'..'\u009F' || ch in '\u2000'..'\u20FF') {
+                        sb.append("\\u${ch.code.toString(16).padStart(4, '0').uppercase()}")
                     } else {
                         sb.append(ch)
                     }
@@ -444,7 +435,7 @@ object Json {
         private var line = 1
         private var lineOffset = 0
         private var current = 0
-        private var captureBuffer: StringBuilder? = null
+        private var captureBuffer: StringBuilder = StringBuilder()
         private var captureStart: Int
 
         init {
@@ -577,12 +568,12 @@ object Json {
         private fun readEscape() {
             read()
             when (current.toChar()) {
-                '"', '/', '\\' -> captureBuffer!!.append(current.toChar())
-                'b' -> captureBuffer!!.append('\b')
-                'f' -> captureBuffer!!.append('\u000c')
-                'n' -> captureBuffer!!.append('\n')
-                'r' -> captureBuffer!!.append('\r')
-                't' -> captureBuffer!!.append('\t')
+                '"', '/', '\\' -> captureBuffer.append(current.toChar())
+                'b' -> captureBuffer.append('\b')
+                'f' -> captureBuffer.append('\u000c')
+                'n' -> captureBuffer.append('\n')
+                'r' -> captureBuffer.append('\r')
+                't' -> captureBuffer.append('\t')
                 'u' -> {
                     val hexChars = CharArray(4)
                     var isHexCharsDigits = true
@@ -596,14 +587,14 @@ object Json {
                         i++
                     }
                     if (isHexCharsDigits) {
-                        captureBuffer!!.append(String(hexChars).toInt(16).toChar())
+                        captureBuffer.append(String(hexChars).toInt(16).toChar())
                     } else {
                         captureBuffer
-                            ?.append("\\u")
-                            ?.append(hexChars[0])
-                            ?.append(hexChars[1])
-                            ?.append(hexChars[2])
-                            ?.append(hexChars[3])
+                            .append("\\u")
+                            .append(hexChars[0])
+                            .append(hexChars[1])
+                            .append(hexChars[2])
+                            .append(hexChars[3])
                     }
                 }
 
@@ -710,24 +701,21 @@ object Json {
         }
 
         private fun startCapture() {
-            if (captureBuffer == null) {
-                captureBuffer = StringBuilder()
-            }
             captureStart = index - 1
         }
 
         private fun pauseCapture() {
-            captureBuffer!!.append(json, captureStart, index - 1)
+            captureBuffer.append(json, captureStart, index - 1)
             captureStart = -1
         }
 
         private fun endCapture(): String {
             val end = if (current == -1) index else index - 1
             val captured: String
-            if (captureBuffer!!.isNotEmpty()) {
-                captureBuffer!!.append(json, captureStart, end)
+            if (captureBuffer.isNotEmpty()) {
+                captureBuffer.append(json, captureStart, end)
                 captured = captureBuffer.toString()
-                captureBuffer!!.setLength(0)
+                captureBuffer.setLength(0)
             } else {
                 captured = json.substring(captureStart, end)
             }
