@@ -195,10 +195,10 @@ object Xml {
     }
 
     private fun checkStandalone(
-        encoding: String, identStep: XmlStringBuilder.Step, localMap: MutableMap<*, *>?
+        encoding: String, identStep: XmlStringBuilder.Step, localMap: MutableMap<*, *>
     ): XmlStringBuilder {
         val builder: XmlStringBuilder
-        if (localMap!!.containsKey(STANDALONE)) {
+        if (localMap.containsKey(STANDALONE)) {
             builder = XmlStringBuilderWithoutRoot(
                 identStep,
                 encoding,
@@ -1365,7 +1365,7 @@ object Xml {
                 }
                 builder.append("<")
                     .append(XmlValue.escapeName(name, namespaces))
-                    .append(U.join(attrs, ""))
+                    .append(attrs.joinToString(""))
                 if (selfClosing) {
                     builder.append("/")
                 }
@@ -1759,7 +1759,7 @@ object Xml {
             if (ch != ':') {
                 try {
                     if (ch != '?') {
-                        DOCUMENT!!.createElement(ch.toString())
+                        DOCUMENT.createElement(ch.toString())
                     }
                     result.append(ch)
                 } catch (ex: Exception) {
@@ -1776,7 +1776,7 @@ object Xml {
                     result.append(ch)
                 } else if (ch != ':') {
                     try {
-                        DOCUMENT!!.createElement("a$ch")
+                        DOCUMENT.createElement("a$ch")
                         result.append(ch)
                     } catch (ex: Exception) {
                         result.append("__")
@@ -1917,7 +1917,7 @@ object Xml {
             return builder.parse(InputSource(StringReader(xml)))
         }
 
-        fun createDocument(): org.w3c.dom.Document? {
+        fun createDocument(): org.w3c.dom.Document {
             return try {
                 val factory = DocumentBuilderFactory.newInstance()
                 factory.isNamespaceAware = true
@@ -1925,7 +1925,7 @@ object Xml {
                 val builder = factory.newDocumentBuilder()
                 builder.newDocument()
             } catch (ex: ParserConfigurationException) {
-                null
+                throw IllegalArgumentException(ex)
             }
         }
 
