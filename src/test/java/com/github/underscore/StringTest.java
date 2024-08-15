@@ -3500,6 +3500,7 @@ class StringTest {
         assertEquals("{value=[]}", U.fromJsonMap(stringJson).toString());
         String stringJson2 = "{}";
         assertEquals("{}", U.fromJsonMap(stringJson2).toString());
+        assertEquals("{}", U.fromJsonMap(stringJson2, 100).toString());
     }
 
     @Test
@@ -3511,6 +3512,18 @@ class StringTest {
             U.fromJsonMap(stringJson);
         } catch (Throwable throwable) {
             assertTrue(throwable instanceof StackOverflowError);
+        }
+    }
+
+    @Test
+    void fromJsonParseException() throws IOException {
+        String stringJson =
+                new String(
+                        Files.readAllBytes(Paths.get("src/test/resources/wellFormedObject.json")));
+        try {
+            U.fromJsonMap(stringJson, 1000);
+        } catch (Throwable throwable) {
+            assertTrue(throwable instanceof Json.ParseException);
         }
     }
 
@@ -3553,16 +3566,12 @@ class StringTest {
     }
 
     private String repeat(String s, int times) {
-        StringBuilder stringBuilder = new StringBuilder(s.length() * times);
-        for (int i = 0; i < times; i++) {
-            stringBuilder.append(s);
-        }
-        return stringBuilder.toString();
+        return s.repeat(Math.max(0, times));
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    void testParseDeeplyNestedArrays() throws IOException {
+    void testParseDeeplyNestedArrays() {
         int times = 1000;
         // [[[ ... ]]]
         String json = repeat("[", times) + repeat("]", times);
@@ -3582,7 +3591,7 @@ class StringTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void testParseDeeplyNestedObjects() throws IOException {
+    void testParseDeeplyNestedObjects() {
         int times = 1000;
         // {"a":{"a": ... {"a":null} ... }}
         String json = repeat("{\"a\":", times) + "null" + repeat("}", times);

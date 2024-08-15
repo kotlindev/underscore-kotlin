@@ -25,11 +25,11 @@ package com.github.underscore
 
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.util.*
 
 object Json {
     private const val NULL = "null"
     private const val DIGIT = "digit"
+    private const val PARSE_MAX_DEPTH: Int = 10000
 
     @JvmOverloads
     @JvmStatic
@@ -52,7 +52,12 @@ object Json {
 
     @JvmStatic
     fun fromJson(string: String): Any? {
-        return JsonParser(string).parse()
+        return JsonParser(string, PARSE_MAX_DEPTH).parse()
+    }
+
+    @JvmStatic
+    fun fromJson(string: String, maxDepth: Int): Any? {
+        return JsonParser(string, maxDepth).parse()
     }
 
     @JvmStatic
@@ -430,7 +435,7 @@ object Json {
     ) :
         RuntimeException(String.format("%s at %d:%d", message, line, column))
 
-    class JsonParser(private val json: String) {
+    class JsonParser(private val json: String, private val maxDepth: Int) {
         private var index = 0
         private var line = 1
         private var lineOffset = 0
@@ -445,7 +450,7 @@ object Json {
         fun parse(): Any? {
             read()
             skipWhiteSpace()
-            val result = readValue()
+            val result = readValue(0)
             skipWhiteSpace()
             if (!isEndOfText) {
                 throw error("Unexpected character")
@@ -453,20 +458,23 @@ object Json {
             return result
         }
 
-        private fun readValue(): Any? {
+        private fun readValue(depth: Int): Any? {
+            if (depth > maxDepth) {
+                throw error("Maximum depth exceeded")
+            }
             return when (current.toChar()) {
                 'n' -> readNull()
                 't' -> readTrue()
                 'f' -> readFalse()
                 '"' -> readString()
-                '[' -> readArray()
-                '{' -> readObject()
+                '[' -> readArray(depth + 1)
+                '{' -> readObject(depth + 1)
                 '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> readNumber()
                 else -> throw expected("value")
             }
         }
 
-        private fun readArray(): List<Any?> {
+        private fun readArray(depth: Int): List<Any?> {
             read()
             val array: MutableList<Any?> = ArrayList()
             skipWhiteSpace()
@@ -475,7 +483,7 @@ object Json {
             }
             do {
                 skipWhiteSpace()
-                array.add(readValue())
+                array.add(readValue(depth))
                 skipWhiteSpace()
             } while (readChar(','))
             if (!readChar(']')) {
@@ -484,7 +492,7 @@ object Json {
             return array
         }
 
-        private fun readObject(): Map<String, Any?> {
+        private fun readObject(depth: Int): Map<String, Any?> {
             read()
             val `object`: MutableMap<String, Any?> = LinkedHashMap()
             skipWhiteSpace()
@@ -499,7 +507,7 @@ object Json {
                     throw expected("':'")
                 }
                 skipWhiteSpace()
-                `object`[name] = readValue()
+                `object`[name] = readValue(depth)
                 skipWhiteSpace()
             } while (readChar(','))
             if (!readChar('}')) {

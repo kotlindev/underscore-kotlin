@@ -41,6 +41,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import org.junit.jupiter.api.Test;
 
@@ -115,6 +116,31 @@ class UnderscoreTest {
                 "some words example",
                 Underscore.chain(asList("some", "words", "example")).join().item());
         assertEquals("--", Underscore.join(asList("", "", ""), "-"));
+    }
+
+    @Test
+    void joinToString() {
+        assertEquals("[]", Underscore.joinToString(List.of(), ",", "[", "]",
+                3, "...", null));
+        assertEquals("[1,2,3]", Underscore.joinToString(List.of(1, 2, 3), ",",
+                "[", "]", -1, "...", null));
+        assertEquals("[1,2,3]", Underscore.joinToString(List.of(1, 2, 3), ",",
+                "[", "]", 3, "...", null));
+        assertEquals("[1,2,3,...]", Underscore.joinToString(List.of(1, 2, 3, 4, 5), ",",
+                "[", "]", 3, "...", null));
+        Function<Integer, String> transform = i -> "Value-" + i;
+        assertEquals("[Value-1,Value-2,Value-3]", Underscore.joinToString(List.of(1, 2, 3), ",",
+                "[", "]", -1, "...", transform));
+        assertEquals("[1,2,3]", Underscore.joinToString(List.of(1, 2, 3), ",",
+                "[", "]", -1, "...", null));
+        assertEquals("{1, 2, 3}", Underscore.joinToString(List.of(1, 2, 3), ", ",
+                "{", "}", -1, "...", null));
+        assertEquals("1, 2, ...", Underscore.joinToString(List.of(1, 2, 3, 4), ", ",
+                "", "", 2, "...", null));
+        assertEquals("1, 2, ...", Underscore.joinToString(List.of(1, 2, 3, 4), ", ",
+                null, null, 2, "...", null));
+        assertEquals("1, 2, ...", Underscore.joinToString(List.of(1, 2, 3, 4), ", ",
+                null, null, 2, null, null));
     }
 
     /*
@@ -437,7 +463,10 @@ class UnderscoreTest {
                                 return array[index++];
                             }
 
-                            public void remove() {}
+                            @Override
+                            public void remove() {
+                                // ignored
+                            }
                         };
         final Optional<Integer> result = Underscore.findLast(iterable, item -> item % 2 == 0);
         assertEquals("Optional[6]", result.toString());
@@ -475,7 +504,9 @@ class UnderscoreTest {
                     }
 
                     @Override
-                    public void remove() {}
+                    public void remove() {
+                        // ignored
+                    }
                 };
             }
         }
@@ -515,6 +546,7 @@ class UnderscoreTest {
             Optional.empty().get();
             fail("IllegalStateException expected");
         } catch (NoSuchElementException ignored) {
+            // ignored
         }
         assertFalse(Optional.<Integer>empty().filter(arg -> true).isPresent());
         assertTrue(Optional.<Integer>empty().filter(arg -> false).isEmpty());
@@ -766,7 +798,7 @@ class UnderscoreTest {
         Map<String, Object> map = U.propertiesToMap(properties);
         assertEquals(0, map.size());
         Map<String, Object> map2 = U.propertiesToMap(null);
-        assertEquals(0, map.size());
+        assertEquals(0, map2.size());
     }
 
     @Test
