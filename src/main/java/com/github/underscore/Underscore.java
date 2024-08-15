@@ -1214,7 +1214,7 @@ public class Underscore<T> {
 
     @SuppressWarnings("unchecked")
     public static <E> List<E>[] partition(final E[] iterable, final Predicate<E> pred) {
-        return partition(Arrays.asList(iterable), pred).toArray(new ArrayList[0]);
+        return partition(Arrays.asList(iterable), pred).toArray(new List[0]);
     }
 
     public T singleOrNull() {
@@ -1255,7 +1255,7 @@ public class Underscore<T> {
     }
 
     public static <E> List<E> first(final List<E> list, final int n) {
-        return list.subList(0, Math.min(n < 0 ? 0 : n, list.size()));
+        return list.subList(0, Math.min(Math.max(n, 0), list.size()));
     }
 
     public T first() {
@@ -1273,7 +1273,7 @@ public class Underscore<T> {
     public static <E> List<E> first(
             final Iterable<E> iterable, final Predicate<E> pred, final int n) {
         List<E> list = filter(newArrayList(iterable), pred);
-        return list.subList(0, Math.min(n < 0 ? 0 : n, list.size()));
+        return list.subList(0, Math.min(Math.max(n, 0), list.size()));
     }
 
     public T first(final Predicate<T> pred) {
@@ -1482,7 +1482,7 @@ public class Underscore<T> {
                         !String.valueOf(arg).equals("null")
                                 && !String.valueOf(arg).equals("0")
                                 && !String.valueOf(arg).equals("false")
-                                && !String.valueOf(arg).equals(""));
+                                && !String.valueOf(arg).isEmpty());
     }
 
     @SuppressWarnings("unchecked")
@@ -1490,13 +1490,13 @@ public class Underscore<T> {
         return (E[]) compact(Arrays.asList(array)).toArray();
     }
 
-    public static <E> List<E> compact(final List<E> list, final E falsyValue) {
+    public static <E> List<E> compactList(final List<E> list, final E falsyValue) {
         return filter(list, arg -> !(Objects.equals(arg, falsyValue)));
     }
 
     @SuppressWarnings("unchecked")
     public static <E> E[] compact(final E[] array, final E falsyValue) {
-        return (E[]) compact(Arrays.asList(array), falsyValue).toArray();
+        return (E[]) compactList(Arrays.asList(array), falsyValue).toArray();
     }
 
     public List<T> compact() {
@@ -1504,7 +1504,7 @@ public class Underscore<T> {
     }
 
     public List<T> compact(final T falsyValue) {
-        return compact((List<T>) iterable, falsyValue);
+        return compactList((List<T>) iterable, falsyValue);
     }
 
     /*
@@ -1605,8 +1605,7 @@ public class Underscore<T> {
      */
     @SuppressWarnings("unchecked")
     public static <E> List<E> union(final List<E> list, final List<E>... lists) {
-        final Set<E> union = new LinkedHashSet<>();
-        union.addAll(list);
+        final Set<E> union = new LinkedHashSet<>(list);
         for (List<E> localList : lists) {
             union.addAll(localList);
         }
@@ -1921,11 +1920,11 @@ public class Underscore<T> {
             return list;
         }
         if (start < stop) {
-            for (char value = start; value < stop; value += step) {
+            for (char value = start; value < stop; value += (char) step) {
                 list.add(value);
             }
         } else {
-            for (char value = start; value > stop; value += step) {
+            for (char value = start; value > stop; value += (char) step) {
                 list.add(value);
             }
         }
@@ -2355,8 +2354,7 @@ public class Underscore<T> {
      */
     @SuppressWarnings("unchecked")
     public static <K, V> Map<K, V> extend(final Map<K, V> destination, final Map<K, V>... sources) {
-        final Map<K, V> result = new LinkedHashMap<>();
-        result.putAll(destination);
+        final Map<K, V> result = new LinkedHashMap<>(destination);
         for (final Map<K, V> source : sources) {
             result.putAll(source);
         }
@@ -2735,7 +2733,7 @@ public class Underscore<T> {
 
     public static String format(final String template, final Object... params) {
         final java.util.regex.Matcher matcher = FORMAT_PATTERN.matcher(template);
-        final StringBuffer buffer = new StringBuffer();
+        final StringBuilder buffer = new StringBuilder();
         int index = 0;
         while (matcher.find()) {
             if (matcher.group(1).isEmpty()) {
@@ -2900,7 +2898,7 @@ public class Underscore<T> {
         }
 
         public Chain<T> compact(final T falsyValue) {
-            return new Chain<>(Underscore.compact(list, falsyValue));
+            return new Chain<>(Underscore.compactList(list, falsyValue));
         }
 
         @SuppressWarnings("unchecked")
@@ -3320,6 +3318,40 @@ public class Underscore<T> {
         return sb.toString();
     }
 
+    public static <T> String joinToString(final Iterable<T> iterable, final String separator,
+                                          final String prefix, final String postfix,
+                                          final int limit,
+                                          final String truncated,
+                                          final Function<T, String> transform) {
+        final StringBuilder sb = new StringBuilder();
+        int index = 0;
+        if (prefix != null) {
+            sb.append(prefix);
+        }
+        for (final T item : iterable) {
+            if (index > 0) {
+                sb.append(separator);
+            }
+            index += 1;
+            if (limit < 0 || index <= limit) {
+                sb.append(transform == null ? item.toString() : transform.apply(item));
+            } else {
+                break;
+            }
+        }
+        joinToStringPostfix(postfix, limit, truncated, index, sb);
+        return sb.toString();
+    }
+
+    private static void joinToStringPostfix(String postfix, int limit, String truncated, int index, StringBuilder sb) {
+        if (limit >= 0 && index > limit) {
+            sb.append(truncated == null ? "..." : truncated);
+        }
+        if (postfix != null) {
+            sb.append(postfix);
+        }
+    }
+
     public static <T> String join(final Iterable<T> iterable) {
         return join(iterable, " ");
     }
@@ -3492,7 +3524,7 @@ public class Underscore<T> {
         if (position < 0) {
             index = 0;
         } else {
-            index = position > size ? size : position;
+            index = Math.min(position, size);
         }
         result.add(newArrayList(iterable).subList(0, index));
         result.add(newArrayList(iterable).subList(index, size));
@@ -3821,7 +3853,7 @@ public class Underscore<T> {
         System.out.println(message);
     }
 
-    public static interface Function3<F1, F2, F3, T> {
+    public interface Function3<F1, F2, F3, T> {
         T apply(F1 arg1, F2 arg2, F3 arg3);
     }
 
@@ -3836,11 +3868,11 @@ public class Underscore<T> {
         }
     }
 
-    public static interface PredicateIndexed<T> {
+    public interface PredicateIndexed<T> {
         boolean test(int index, T arg);
     }
 
-    public static interface Template<T> extends Function<T, String> {
+    public interface Template<T> extends Function<T, String> {
         List<String> check(T arg);
     }
 }
