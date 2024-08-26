@@ -235,6 +235,7 @@ object Xml {
         return if (foundAttrs == 0 && foundElements == 1 && foundListElements == 0) null else newRootName
     }
 
+    @Suppress("UNCHECKED_CAST")
     private operator fun getValue(name: String?, value: Any?, fromType: FromType): Any? {
         val localValue: Any? = if (value is Map<*, *> && (value as Map<String?, Any?>).entries.size == 1) {
                 val (key, value1) = (value as Map<String, Any?>).entries.iterator().next()
@@ -251,8 +252,7 @@ object Xml {
 
     @JvmStatic
     fun stringToNumber(number: String): Any {
-        val localValue: Any
-        localValue = if (number.contains(".") || number.contains("e") || number.contains("E")) {
+        val localValue: Any = if (number.contains(".") || number.contains("e") || number.contains("E")) {
             if (number.length > 9
                 || number.contains(".") && number.length - number.lastIndexOf('.') > 2
                 && number[number.length - 1] == '0'
@@ -343,6 +343,7 @@ object Xml {
         return checkNumberAndBoolean(map, node.nodeName)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun checkNumberAndBoolean(map: MutableMap<String?, Any?>, name: String): Any {
         val localMap: MutableMap<String?, Any?>
         if (map.containsKey(NUMBER) && TRUE == map[NUMBER] && map.containsKey(TEXT)) {
@@ -363,6 +364,7 @@ object Xml {
         return checkArray(localMap2, name)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun checkArray(map: MutableMap<String?, Any?>, name: String): Any {
         val localMap = checkNullAndString(map)
         val `object`: Any = if (map.containsKey(ARRAY) && TRUE == map[ARRAY]) {
@@ -403,6 +405,7 @@ object Xml {
         return object2
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun checkNullAndString(map: MutableMap<String?, Any?>): Map<String?, Any?> {
         val localMap: MutableMap<String?, Any?>
         if (map.containsKey(NULL_ATTR) && TRUE == map[NULL_ATTR]) {
@@ -587,6 +590,7 @@ object Xml {
         return result.append(lastChars).toString()
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun addNodeValue(
         map: MutableMap<String?, Any?>,
         name: String,
@@ -678,6 +682,7 @@ object Xml {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun checkResult(
         xml: String,
         document: org.w3c.dom.Document,
@@ -855,6 +860,7 @@ object Xml {
         return toXml(result as Map<*, *>?, identStep, ROOT)
     }
 
+    @Suppress("UNCHECKED_CAST")
     @JvmStatic
     fun changeXmlEncoding(
         xml: String?, identStep: XmlStringBuilder.Step, encoding: String?
@@ -1243,6 +1249,7 @@ object Xml {
     }
 
     object XmlObject {
+        @Suppress("UNCHECKED_CAST")
         fun writeXml(
             map: Map<*, *>?,
             name: String?,
@@ -1706,6 +1713,7 @@ object Xml {
             }
         }
 
+        @Suppress("UNCHECKED_CAST")
         private fun processArrays2(
             value: Any,
             builder: XmlStringBuilder,
@@ -1803,8 +1811,7 @@ object Xml {
         private fun escape(s: String, sb: StringBuilder) {
             val len = s.length
             for (i in 0 until len) {
-                val ch = s[i]
-                when (ch) {
+                when (val ch = s[i]) {
                     '\'' -> sb.append("'")
                     '&' -> sb.append("&amp;")
                     '<' -> sb.append("&lt;")
@@ -1815,7 +1822,7 @@ object Xml {
                     '\r' -> sb.append("&#xD;")
                     '\t' -> sb.append("\t")
                     '€' -> sb.append("€")
-                    else -> if (ch <= '\u001F' || ch >= '\u007F' && ch <= '\u009F' || ch >= '\u2000' && ch <= '\u20FF') {
+                    else -> if (ch <= '\u001F' || ch in '\u007F'..'\u009F' || ch in '\u2000'..'\u20FF') {
                         val ss = Integer.toHexString(ch.code)
                         sb.append("&#x")
                         sb.append("0".repeat(4 - ss.length))
