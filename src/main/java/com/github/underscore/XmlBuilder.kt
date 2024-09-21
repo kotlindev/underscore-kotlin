@@ -41,6 +41,7 @@ open class XmlBuilder internal constructor(rootName: String) {
         path = rootName
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun e(elementName: String): XmlBuilder {
         U.remove<Any>(data, "$path.$SELF_CLOSING")
         val value: MutableMap<String, Any> = LinkedHashMap()
