@@ -26,16 +26,12 @@ package com.github.underscore
 import java.nio.charset.StandardCharsets
 
 class Base32 private constructor() {
-    private val digits: CharArray
-    private val mask: Int
-    private val shift: Int
-    private val charMap: MutableMap<Char, Int>
+    private val digits: CharArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef".toCharArray()
+    private val mask: Int = digits.size - 1
+    private val shift: Int = Integer.numberOfTrailingZeros(digits.size)
+    private val charMap = HashMap<Char, Int>()
 
     init {
-        digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef".toCharArray()
-        mask = digits.size - 1
-        shift = Integer.numberOfTrailingZeros(digits.size)
-        charMap = HashMap()
         var index = 0
         while (index < digits.size) {
             charMap[digits[index]] = index
@@ -44,7 +40,7 @@ class Base32 private constructor() {
     }
 
     private fun decodeInternal(encoded: String): ByteArray {
-        if (encoded.length == 0) {
+        if (encoded.isEmpty()) {
             return ByteArray(0)
         }
         val encodedLength = encoded.length
@@ -69,7 +65,7 @@ class Base32 private constructor() {
     }
 
     private fun encodeInternal(data: ByteArray): String {
-        if (data.size == 0) {
+        if (data.isEmpty()) {
             return ""
         }
         val outputLength = (data.size * 8 + shift - 1) / shift

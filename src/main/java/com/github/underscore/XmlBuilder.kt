@@ -30,20 +30,20 @@ import com.github.underscore.Xml.toXml
 import org.w3c.dom.Document
 
 open class XmlBuilder internal constructor(rootName: String) {
-    private val data: MutableMap<String?, Any?>
+    private val data = LinkedHashMap<String?, Any?>()
     private var path: String
     private var savedPath: String? = null
 
     init {
-        data = LinkedHashMap()
         val value: MutableMap<String, Any> = LinkedHashMap()
         value[SELF_CLOSING] = TRUE
         data[rootName] = value
         path = rootName
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun e(elementName: String): XmlBuilder {
-        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.remove<Any>(data, "$path.$SELF_CLOSING")
         val value: MutableMap<String, Any> = LinkedHashMap()
         value[SELF_CLOSING] = TRUE
         val `object` = U.get<Any>(data, "$path.$elementName")
@@ -55,7 +55,7 @@ open class XmlBuilder internal constructor(rootName: String) {
             path += ".$elementName.1"
             savedPath = path
         } else if (`object` is List<*>) {
-            path += "." + elementName + "." + (`object` as List<Any?>).size
+            path += "." + elementName + "." + `object`.size
             savedPath = path
             (`object` as MutableList<Any?>).add(value)
         } else {
@@ -66,31 +66,31 @@ open class XmlBuilder internal constructor(rootName: String) {
     }
 
     fun a(attributeName: String, value: String?): XmlBuilder {
-        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.remove<Any>(data, "$path.$SELF_CLOSING")
         U.set<Any>(data, "$path.-$attributeName", value)
         return this
     }
 
     fun c(comment: String?): XmlBuilder {
-        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.remove<Any>(data, "$path.$SELF_CLOSING")
         U.update<Any>(data, "$path.#comment", comment)
         return this
     }
 
     fun i(target: String, value: String?): XmlBuilder {
-        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.remove<Any>(data, "$path.$SELF_CLOSING")
         U.set<Any>(data, "?$target", value)
         return this
     }
 
     fun d(cdata: String?): XmlBuilder {
-        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.remove<Any>(data, "$path.$SELF_CLOSING")
         U.update<Any>(data, "$path.#cdata-section", cdata)
         return this
     }
 
     fun t(text: String?): XmlBuilder {
-        U.remove<Any>(data, path + "." + SELF_CLOSING)
+        U.remove<Any>(data, "$path.$SELF_CLOSING")
         U.update<Any>(data, "$path.#text", text)
         return this
     }

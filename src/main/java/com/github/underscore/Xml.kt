@@ -675,7 +675,7 @@ object Xml {
                 fromType
             )
             if (checkResult(xml, document, result, fromType)) {
-                ((result as Map<*, *>).entries.iterator().next() as Map.Entry<*, *>).value
+                (result as Map<*, *>).entries.iterator().next().value
             } else result
         } catch (ex: Exception) {
             throw IllegalArgumentException(ex)
@@ -767,7 +767,7 @@ object Xml {
                 FromType.FOR_CONVERT
             )
             if (checkResult(xml, document, result, FromType.FOR_CONVERT)) {
-                ((result as Map<*, *>).entries.iterator().next() as Map.Entry<*, *>).value!!
+                (result as Map<*, *>).entries.iterator().next().value!!
             } else result
         } catch (ex: Exception) {
             throw IllegalArgumentException(ex)
@@ -788,7 +788,7 @@ object Xml {
                 FromType.FOR_CONVERT
             )
             if (checkResult(xml, document, result, FromType.FOR_CONVERT)) {
-                ((result as Map<*, *>).entries.iterator().next() as Map.Entry<*, *>).value!!
+                (result as Map<*, *>).entries.iterator().next().value!!
             } else result
         } catch (ex: Exception) {
             throw IllegalArgumentException(ex)
@@ -804,19 +804,19 @@ object Xml {
             val result: String = if (localString.startsWith("-")
                 && namespaces.contains(
                     localString.substring(
-                        1, Math.max(1, localString.indexOf(':'))
+                        1, max(1, localString.indexOf(':'))
                     )
                 )
             ) {
                 ("-"
                         + localString.substring(
-                    Math.max(0, localString.indexOf(':') + 1)
+                    max(0, localString.indexOf(':') + 1)
                 ))
             } else if (namespaces.contains(
-                    localString.substring(0, Math.max(0, localString.indexOf(':')))
+                    localString.substring(0, max(0, localString.indexOf(':')))
                 )
             ) {
-                localString.substring(Math.max(0, localString.indexOf(':') + 1))
+                localString.substring(max(0, localString.indexOf(':') + 1))
             } else {
                 `object`.toString()
             }
@@ -842,10 +842,10 @@ object Xml {
             val result: String? = if (localString.startsWith("-")) {
                 null
             } else if (namespaces.contains(
-                    localString.substring(0, Math.max(0, localString.indexOf(':')))
+                    localString.substring(0, max(0, localString.indexOf(':')))
                 )
             ) {
-                localString.substring(Math.max(0, localString.indexOf(':') + 1))
+                localString.substring(max(0, localString.indexOf(':') + 1))
             } else {
                 `object`.toString()
             }
@@ -917,7 +917,7 @@ object Xml {
 
         fun fillSpaces(): XmlStringBuilder {
             builder.append(
-                (if (identStep == Step.TABS) '\t' else ' ').toString().repeat(Math.max(0, ident))
+                (if (identStep == Step.TABS) '\t' else ' ').toString().repeat(max(0, ident))
             )
             return this
         }
@@ -1771,10 +1771,10 @@ object Xml {
                     }
                     result.append(ch)
                 } catch (ex: Exception) {
-                    result.append("__").append(encode(Character.toString(ch))).append("__")
+                    result.append("__").append(encode(ch.toString())).append("__")
                 }
             } else {
-                result.append("__").append(encode(Character.toString(ch))).append("__")
+                result.append("__").append(encode(ch.toString())).append("__")
             }
             for (i in 1 until length) {
                 ch = name[i]
@@ -1788,11 +1788,11 @@ object Xml {
                         result.append(ch)
                     } catch (ex: Exception) {
                         result.append("__")
-                            .append(encode(Character.toString(ch)))
+                            .append(encode(ch.toString()))
                             .append("__")
                     }
                 } else {
-                    result.append("__").append(encode(Character.toString(ch))).append("__")
+                    result.append("__").append(encode(ch.toString())).append("__")
                 }
             }
             return result.toString()
@@ -1886,13 +1886,13 @@ object Xml {
         @JvmStatic
         fun getMapKey(map: Any?): String {
             return if (map is Map<*, *> && map.isNotEmpty())
-                (map.entries.iterator().next() as Map.Entry<*, *>).key.toString() else ""
+                map.entries.iterator().next().key.toString() else ""
         }
 
         @JvmStatic
         fun getMapValue(map: Any?): Any? {
-            return if (map is Map<*, *> && map.isNotEmpty()) (map.entries.iterator()
-                .next() as Map.Entry<*, *>).value else null
+            return if (map is Map<*, *> && map.isNotEmpty()) map.entries.iterator()
+                .next().value else null
         }
     }
 
