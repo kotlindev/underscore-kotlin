@@ -95,6 +95,13 @@ object Xml {
         return builder.toString()
     }
 
+    @JvmStatic
+    fun toXmlWithoutRoot(collection: Collection<*>, identStep: XmlStringBuilder.Step): String {
+        val builder = XmlStringBuilderWithoutHeader(identStep, 0)
+        writeArray(collection, builder, ARRAY_TRUE)
+        return builder.toString()
+    }
+
     @JvmOverloads
     @JvmStatic
     fun toXml(
@@ -486,34 +493,32 @@ object Xml {
 
     @JvmStatic
     fun parseAttributes(source: String): Map<String, String> {
-        val result: MutableMap<String, String> = LinkedHashMap()
+        val result = LinkedHashMap<String, String>()
         val key = StringBuilder()
         val value = StringBuilder()
-        var quoteFound = false
-        var equalFound = false
-        var index = 0
-        while (index < source.length) {
-            if (source[index] == '=') {
-                equalFound = !equalFound
-                index += 1
-                continue
-            }
-            if (source[index] == '"') {
-                if (quoteFound && equalFound) {
-                    result[key.toString()] = value.toString()
-                    key.setLength(0)
-                    value.setLength(0)
-                    equalFound = false
+        var inQuotes = false
+        var expectingValue = false
+        for (c in source) {
+            when {
+                c == '"' -> {
+                    inQuotes = !inQuotes
+                    if (!inQuotes && expectingValue) {
+                        result[key.toString()] = value.toString()
+                        key.clear()
+                        value.clear()
+                        expectingValue = false
+                    }
                 }
-                quoteFound = !quoteFound
-            } else if (quoteFound || SKIPPED_CHARS.contains(source[index])) {
-                if (quoteFound) {
-                    value.append(source[index])
+                c == '=' && !inQuotes -> {
+                    expectingValue = true
                 }
-            } else {
-                key.append(source[index])
+                inQuotes -> {
+                    value.append(c)
+                }
+                !SKIPPED_CHARS.contains(c) -> {
+                    key.append(c)
+                }
             }
-            index += 1
         }
         return result
     }
