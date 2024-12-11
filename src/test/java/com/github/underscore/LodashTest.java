@@ -1029,6 +1029,19 @@ class LodashTest {
     }
 
     @Test
+    void xmpToJson5() {
+        assertEquals("{\n"
+                        + "  \"Comment\": {\n"
+                        + "    \"-stringValue\": \"============================\",\n"
+                        + "    \"-self-closing\": \"true\"\n"
+                        + "  },\n"
+                        + "  \"#omit-xml-declaration\": \"yes\"\n"
+                        + "}",
+                U.xmlToJson(
+                        "<Comment stringValue=\"============================\"/>"));
+    }
+
+    @Test
     void xmlToJsonMinimum() {
         assertEquals(
                 "{\n"
@@ -1341,6 +1354,25 @@ class LodashTest {
                         + "  <c>v3</c>\n"
                         + "</root>",
                 U.jsonToXml("{\"a\" : {\n \"b\" : \"v1\" }, \"c\" : [\"v1\", \"v2\", \"v3\"]}"));
+    }
+
+    @Test
+    void jsonToXmlMinimum() {
+        assertEquals("<a></a>",
+                U.jsonToXmlMinimum("{\n  \"a\": {\n  }\n}"));
+        assertEquals("<a></a>",
+                U.jsonToXmlMinimum("{\n  \"a\": {\n  }\n}", Xml.XmlStringBuilder.Step.TWO_SPACES));
+        assertEquals("<root empty-array=\"true\"></root>",
+                U.jsonToXmlMinimum("[]"));
+        assertEquals("<root>\n"
+                        + "  <a>\n"
+                        + "    <b>1</b>\n"
+                        + "  </a>\n"
+                        + "  <c>v1</c>\n"
+                        + "  <c>v2</c>\n"
+                        + "  <c>v3</c>\n"
+                        + "</root>",
+                U.jsonToXmlMinimum("{\"a\" : {\n \"b\" : 1 }, \"c\" : [\"v1\", \"v2\", \"v3\"]}"));
     }
 
     @Test
