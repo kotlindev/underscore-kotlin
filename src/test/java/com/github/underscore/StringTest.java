@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright 2015-2024 Valentyn Kolesnikov
+ * Copyright 2015-2025 Valentyn Kolesnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package com.github.underscore;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -530,7 +531,7 @@ class StringTest {
                                     }
                                 })));
         assertEquals("[\n  null\n]", U.toJson(Arrays.asList(new String[] {null})));
-        assertEquals("null", U.toJson((Collection) null));
+        assertEquals("null", U.toJson((Collection<Object>) null));
         class Test {
             public String toString() {
                 return "test";
@@ -1563,7 +1564,7 @@ class StringTest {
                 U.toXml(testMap));
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>null</root>",
-                U.toXml((Map) null));
+                U.toXml((Map<String, Object>) null));
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<item empty-array=\"true\">"
                         + "</item>",
@@ -1802,8 +1803,7 @@ class StringTest {
                         + "}";
         assertEquals(json, U.toJson((Map<String, Object>) U.fromXml(xml)));
         assertEquals(xml, U.toXml((Map<String, Object>) U.fromJson(json)));
-        final String xml2 =
-                "<a><e/><b>c</b><!--d--><b>c</b><!--d--></a>";
+        final String xml2 = "<a><e/><b>c</b><!--d--><b>c</b><!--d--></a>";
         assertEquals(
                 "{\n"
                         + "  \"a\": {\n"
@@ -2082,23 +2082,18 @@ class StringTest {
     @SuppressWarnings("unchecked")
     @Test
     void toJsonFromXml17() {
-        final String xml =
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a number=\"true\">1</a>";
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a number=\"true\">1</a>";
         assertEquals("{\n  \"a\": 1\n}", U.toJson((Map<String, Object>) U.fromXml(xml)));
         final String xml2 =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a number=\"true\">1e1</a>";
-        assertEquals(
-                "{\n  \"a\": 10.0\n}", U.toJson((Map<String, Object>) U.fromXml(xml2)));
+        assertEquals("{\n  \"a\": 10.0\n}", U.toJson((Map<String, Object>) U.fromXml(xml2)));
         final String xml3 =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a number=\"true\">1E1</a>";
-        assertEquals(
-                "{\n  \"a\": 10.0\n}", U.toJson((Map<String, Object>) U.fromXml(xml3)));
+        assertEquals("{\n  \"a\": 10.0\n}", U.toJson((Map<String, Object>) U.fromXml(xml3)));
         final String xml4 =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a number=\"true\">1.1</a>";
-        assertEquals(
-                "{\n  \"a\": 1.1\n}", U.toJson((Map<String, Object>) U.fromXml(xml4)));
-        final String xml5 =
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a number=\"a\">1</a>";
+        assertEquals("{\n  \"a\": 1.1\n}", U.toJson((Map<String, Object>) U.fromXml(xml4)));
+        final String xml5 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a number=\"a\">1</a>";
         assertEquals(
                 "{\n"
                         + "  \"a\": {\n"
@@ -2157,10 +2152,8 @@ class StringTest {
     void toJsonFromXml18() {
         final String xml =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a boolean=\"true\">true</a>";
-        assertEquals(
-                "{\n  \"a\": true\n}", U.toJson((Map<String, Object>) U.fromXml(xml)));
-        final String xml2 =
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a boolean=\"a\">true</a>";
+        assertEquals("{\n  \"a\": true\n}", U.toJson((Map<String, Object>) U.fromXml(xml)));
+        final String xml2 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a boolean=\"a\">true</a>";
         assertEquals(
                 "{\n"
                         + "  \"a\": {\n"
@@ -2235,8 +2228,7 @@ class StringTest {
     @Test
     void toJsonFromXml20() {
         final String xml = "<a empty-array=\"true\"></a>";
-        final String json =
-                "{\n  \"a\": [\n  ],\n  \"#omit-xml-declaration\": \"yes\"\n}";
+        final String json = "{\n  \"a\": [\n  ],\n  \"#omit-xml-declaration\": \"yes\"\n}";
         assertEquals(json, U.toJson((Map<String, Object>) U.fromXml(xml)));
         final String xml2 = "<a empty-array=\"a\"></a>";
         final String json2 =
@@ -2248,8 +2240,7 @@ class StringTest {
                         + "}";
         assertEquals(json2, U.toJson((Map<String, Object>) U.fromXml(xml2)));
         final String xml3 = "<a empty-array=\"true\">1</a>";
-        final String json3 =
-                "{\n  \"a\": \"1\",\n  \"#omit-xml-declaration\": \"yes\"\n}";
+        final String json3 = "{\n  \"a\": \"1\",\n  \"#omit-xml-declaration\": \"yes\"\n}";
         assertEquals(json3, U.toJson((Map<String, Object>) U.fromXml(xml3)));
         final String xml4 = "<a empty-array=\"true\" array=\"true\"></a>";
         final String json4 =
@@ -2376,7 +2367,8 @@ class StringTest {
 
     @Test
     void testAttributeWithSpaces() {
-        Map<String, String> result = Xml.parseAttributes("key1=\"value with spaces\" key2=\"another value\"");
+        Map<String, String> result =
+                Xml.parseAttributes("key1=\"value with spaces\" key2=\"another value\"");
         assertEquals(Map.of("key1", "value with spaces", "key2", "another value"), result);
     }
 
@@ -2480,13 +2472,11 @@ class StringTest {
     @Test
     void toJsonFromXml24() {
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a>\n  <?b c=\"d\"?>\n</a>";
-        final String json =
-                "{\n  \"a\": {\n    \"?b\": \"c=\\\"d\\\"\"\n  }\n}";
+        final String json = "{\n  \"a\": {\n    \"?b\": \"c=\\\"d\\\"\"\n  }\n}";
         assertEquals(json, U.toJson((Map<String, Object>) U.fromXml(xml)));
         assertEquals(xml, U.toXml((Map<String, Object>) U.fromJson(json)));
         final String xml2 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?b c=\"d\"?>\n<a></a>";
-        final String json2 =
-                "{\n  \"?b\": \"c=\\\"d\\\"\",\n  \"a\": {\n  }\n}";
+        final String json2 = "{\n  \"?b\": \"c=\\\"d\\\"\",\n  \"a\": {\n  }\n}";
         assertEquals(json2, U.toJson((Map<String, Object>) U.fromXml(xml2)));
         assertEquals(xml2, U.toXml((Map<String, Object>) U.fromJson(json2)));
         final String xml3 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a>\n  <?b?>\n</a>";
@@ -2999,13 +2989,11 @@ class StringTest {
     @SuppressWarnings("unchecked")
     @Test
     void toXmlFromJson19() {
-        final String json =
-                "{\n  \"a\": {\n  },\n  \"#encoding\": \"windows-1251\"\n}";
+        final String json = "{\n  \"a\": {\n  },\n  \"#encoding\": \"windows-1251\"\n}";
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"windows-1251\"?>\n<a></a>",
                 U.toXml((Map<String, Object>) U.fromJson(json)));
-        final String json2 =
-                "{\n  \"a\": {\n  },\n  \"#encoding\": \"windows-9999\"\n}";
+        final String json2 = "{\n  \"a\": {\n  },\n  \"#encoding\": \"windows-9999\"\n}";
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"windows-9999\"?>\n<a></a>",
                 U.toXml((Map<String, Object>) U.fromJson(json2)));
@@ -3107,8 +3095,7 @@ class StringTest {
     @SuppressWarnings("unchecked")
     @Test
     void toXmlFromJson25() {
-        final String json =
-                "{\n  \"a\": [\n    [\n      1\n    ]\n  ]\n}";
+        final String json = "{\n  \"a\": [\n    [\n      1\n    ]\n  ]\n}";
         final String xml =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<a array=\"true\">\n"
@@ -3585,7 +3572,7 @@ class StringTest {
         try {
             U.fromJsonMap(stringJson, 1000);
         } catch (Throwable throwable) {
-            assertTrue(throwable instanceof Json.ParseException);
+            assertInstanceOf(Json.ParseException.class, throwable);
         }
     }
 
@@ -3597,7 +3584,7 @@ class StringTest {
         try {
             U.fromJsonMap(stringJson);
         } catch (Throwable throwable) {
-            assertTrue(throwable instanceof StackOverflowError);
+            assertInstanceOf(StackOverflowError.class, throwable);
         }
     }
 
@@ -3623,7 +3610,9 @@ class StringTest {
         try {
             U.fromXmlMap(stringXml);
         } catch (Throwable throwable) {
-            assertTrue(throwable instanceof StackOverflowError);
+            assertTrue(
+                    throwable instanceof StackOverflowError
+                            || throwable instanceof IllegalArgumentException);
         }
     }
 

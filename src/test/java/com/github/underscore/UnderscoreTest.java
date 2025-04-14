@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright 2015-2024 Valentyn Kolesnikov
+ * Copyright 2015-2025 Valentyn Kolesnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,11 +56,11 @@ class UnderscoreTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void main() {
+    void testMain() {
         Underscore.main(new String[] {});
-        new Underscore(singletonList("")).getIterable();
-        assertEquals("[]", new Underscore(singletonList("")).value().toString());
-        new Underscore("");
+        new Underscore<>(singletonList("")).getIterable();
+        assertEquals("[]", new Underscore<>(singletonList("")).value().toString());
+        new Underscore<>("");
     }
 
     /*
@@ -74,7 +75,7 @@ class UnderscoreTest {
                 Underscore.sort(asList("some", "words", "example")).toString());
         assertEquals(
                 "[example, some, words]",
-                new Underscore(asList("some", "words", "example")).sort().toString());
+                new Underscore<>(asList("some", "words", "example")).sort().toString());
         assertEquals(
                 "[example, some, words]",
                 Underscore.chain(asList("some", "words", "example")).sort().value().toString());
@@ -100,7 +101,8 @@ class UnderscoreTest {
         assertEquals(
                 "some-words-example", Underscore.join(asList("some", "words", "example"), "-"));
         assertEquals(
-                "some-words-example", new Underscore(asList("some", "words", "example")).join("-"));
+                "some-words-example",
+                new Underscore<>(asList("some", "words", "example")).join("-"));
         assertEquals(
                 "some-words-example",
                 Underscore.join(new String[] {"some", "words", "example"}, "-"));
@@ -109,7 +111,7 @@ class UnderscoreTest {
                 Underscore.chain(asList("some", "words", "example")).join("-").item());
         assertEquals("some words example", Underscore.join(asList("some", "words", "example")));
         assertEquals(
-                "some words example", new Underscore(asList("some", "words", "example")).join());
+                "some words example", new Underscore<>(asList("some", "words", "example")).join());
         assertEquals(
                 "some words example", Underscore.join(new String[] {"some", "words", "example"}));
         assertEquals(
@@ -120,27 +122,35 @@ class UnderscoreTest {
 
     @Test
     void joinToString() {
-        assertEquals("[]", Underscore.joinToString(List.of(), ",", "[", "]",
-                3, "...", null));
-        assertEquals("[1,2,3]", Underscore.joinToString(List.of(1, 2, 3), ",",
-                "[", "]", -1, "...", null));
-        assertEquals("[1,2,3]", Underscore.joinToString(List.of(1, 2, 3), ",",
-                "[", "]", 3, "...", null));
-        assertEquals("[1,2,3,...]", Underscore.joinToString(List.of(1, 2, 3, 4, 5), ",",
-                "[", "]", 3, "...", null));
+        assertEquals("[]", Underscore.joinToString(List.of(), ",", "[", "]", 3, "...", null));
+        assertEquals(
+                "[1,2,3]",
+                Underscore.joinToString(List.of(1, 2, 3), ",", "[", "]", -1, "...", null));
+        assertEquals(
+                "[1,2,3]",
+                Underscore.joinToString(List.of(1, 2, 3), ",", "[", "]", 3, "...", null));
+        assertEquals(
+                "[1,2,3,...]",
+                Underscore.joinToString(List.of(1, 2, 3, 4, 5), ",", "[", "]", 3, "...", null));
         Function<Integer, String> transform = i -> "Value-" + i;
-        assertEquals("[Value-1,Value-2,Value-3]", Underscore.joinToString(List.of(1, 2, 3), ",",
-                "[", "]", -1, "...", transform));
-        assertEquals("[1,2,3]", Underscore.joinToString(List.of(1, 2, 3), ",",
-                "[", "]", -1, "...", null));
-        assertEquals("{1, 2, 3}", Underscore.joinToString(List.of(1, 2, 3), ", ",
-                "{", "}", -1, "...", null));
-        assertEquals("1, 2, ...", Underscore.joinToString(List.of(1, 2, 3, 4), ", ",
-                "", "", 2, "...", null));
-        assertEquals("1, 2, ...", Underscore.joinToString(List.of(1, 2, 3, 4), ", ",
-                null, null, 2, "...", null));
-        assertEquals("1, 2, ...", Underscore.joinToString(List.of(1, 2, 3, 4), ", ",
-                null, null, 2, null, null));
+        assertEquals(
+                "[Value-1,Value-2,Value-3]",
+                Underscore.joinToString(List.of(1, 2, 3), ",", "[", "]", -1, "...", transform));
+        assertEquals(
+                "[1,2,3]",
+                Underscore.joinToString(List.of(1, 2, 3), ",", "[", "]", -1, "...", null));
+        assertEquals(
+                "{1, 2, 3}",
+                Underscore.joinToString(List.of(1, 2, 3), ", ", "{", "}", -1, "...", null));
+        assertEquals(
+                "1, 2, ...",
+                Underscore.joinToString(List.of(1, 2, 3, 4), ", ", "", "", 2, "...", null));
+        assertEquals(
+                "1, 2, ...",
+                Underscore.joinToString(List.of(1, 2, 3, 4), ", ", null, null, 2, "...", null));
+        assertEquals(
+                "1, 2, ...",
+                Underscore.joinToString(List.of(1, 2, 3, 4), ", ", null, null, 2, null, null));
     }
 
     /*
@@ -153,7 +163,8 @@ class UnderscoreTest {
         assertEquals(
                 "[a, b, c, 0, 2]", Underscore.push(asList("a", "b", "c"), "0", "2").toString());
         assertEquals(
-                "[a, b, c, 0, 2]", new Underscore(asList("a", "b", "c")).push("0", "2").toString());
+                "[a, b, c, 0, 2]",
+                new Underscore<>(asList("a", "b", "c")).push("0", "2").toString());
         assertEquals(
                 "[a, b, c, 0, 2]",
                 Underscore.chain(asList("a", "b", "c")).push("0", "2").value().toString());
@@ -167,7 +178,7 @@ class UnderscoreTest {
     @Test
     void pop() {
         assertEquals("c", Underscore.pop(asList("a", "b", "c")).getKey());
-        assertEquals("c", new Underscore(asList("a", "b", "c")).pop().getKey().toString());
+        assertEquals("c", new Underscore<>(asList("a", "b", "c")).pop().getKey().toString());
         assertEquals("c", Underscore.chain(asList("a", "b", "c")).pop().item().getKey());
     }
 
@@ -179,7 +190,7 @@ class UnderscoreTest {
     @Test
     void shift() {
         assertEquals("a", Underscore.shift(asList("a", "b", "c")).getKey());
-        assertEquals("a", new Underscore(asList("a", "b", "c")).shift().getKey().toString());
+        assertEquals("a", new Underscore<>(asList("a", "b", "c")).shift().getKey().toString());
         assertEquals("a", Underscore.chain(asList("a", "b", "c")).shift().item().getKey());
     }
 
@@ -194,7 +205,7 @@ class UnderscoreTest {
                 "[0, 2, a, b, c]", Underscore.unshift(asList("a", "b", "c"), "0", "2").toString());
         assertEquals(
                 "[0, 2, a, b, c]",
-                new Underscore(asList("a", "b", "c")).unshift("0", "2").toString());
+                new Underscore<>(asList("a", "b", "c")).unshift("0", "2").toString());
         assertEquals(
                 "[0, 2, a, b, c]",
                 Underscore.chain(asList("a", "b", "c")).unshift("0", "2").value().toString());
@@ -253,12 +264,12 @@ class UnderscoreTest {
     @SuppressWarnings("unchecked")
     void slice() {
         assertEquals(asList(3, 4, 5), Underscore.slice(asList(1, 2, 3, 4, 5), 2));
-        assertEquals(asList(3, 4, 5), new Underscore(asList(1, 2, 3, 4, 5)).slice(2));
+        assertEquals(asList(3, 4, 5), new Underscore<>(asList(1, 2, 3, 4, 5)).slice(2));
         assertEquals(asList(2, 3, 4), Underscore.slice(asList(1, 2, 3, 4, 5), 1, 4));
         assertEquals(asList("a", "b"), Underscore.slice(asList("a", "b", "c", "d"), 0, 2));
         assertEquals(asList(2, 3, 4), Underscore.slice(asList(1, 2, 3, 4, 5), 1, -1));
         assertEquals(singletonList(3), Underscore.slice(asList(1, 2, 3, 4, 5), 2, 3));
-        assertEquals(singletonList(3), new Underscore(asList(1, 2, 3, 4, 5)).slice(2, 3));
+        assertEquals(singletonList(3), new Underscore<>(asList(1, 2, 3, 4, 5)).slice(2, 3));
         assertEquals(asList(4, 5), Underscore.slice(asList(1, 2, 3, 4, 5), -2));
         assertEquals(asList(3, 4), Underscore.slice(asList(1, 2, 3, 4, 5), -3, -1));
         assertEquals(asList(3, 4), Underscore.slice(asList(1, 2, 3, 4, 5), -3, 4));
@@ -355,11 +366,11 @@ class UnderscoreTest {
     @SuppressWarnings("unchecked")
     void copyOf() {
         assertEquals(asList(1, 2, 3), Underscore.copyOf(asList(1, 2, 3)));
-        assertEquals(asList(1, 2, 3), new Underscore(asList(1, 2, 3)).copyOf());
-        assertFalse(asList(1, 2, 3) == Underscore.copyOf(asList(1, 2, 3)));
+        assertEquals(asList(1, 2, 3), new Underscore<>(asList(1, 2, 3)).copyOf());
+        assertNotSame(asList(1, 2, 3), Underscore.copyOf(asList(1, 2, 3)));
         assertEquals(asList("a", "b"), Underscore.copyOfRange(asList("a", "b", "c", "d"), 0, 2));
         assertEquals(
-                asList("a", "b"), new Underscore(asList("a", "b", "c", "d")).copyOfRange(0, 2));
+                asList("a", "b"), new Underscore<>(asList("a", "b", "c", "d")).copyOfRange(0, 2));
     }
 
     /*
@@ -612,7 +623,7 @@ class UnderscoreTest {
                 Underscore.and(
                         (Predicate<Object>) Objects::nonNull,
                         (Predicate<Number>) value -> value.intValue() > 0,
-                        (Predicate<Integer>) value -> (50 <= value) && (value <= 60));
+                        value -> (50 <= value) && (value <= 60));
         assertTrue(predicate.test(50));
         assertFalse(predicate.test(null));
         assertFalse(predicate.test(-56));
@@ -628,7 +639,7 @@ class UnderscoreTest {
                 Underscore.or(
                         (Predicate<Object>) Objects::isNull,
                         (Predicate<Number>) value -> value.intValue() > 2000,
-                        (Predicate<Integer>) value -> (50 <= value) && (value <= 60));
+                        value -> (50 <= value) && (value <= 60));
         assertTrue(predicate.test(50));
         assertTrue(predicate.test(55));
         assertTrue(predicate.test(60));
