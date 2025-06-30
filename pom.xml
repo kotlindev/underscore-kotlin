@@ -27,7 +27,7 @@
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <kotlin.version>2.1.20</kotlin.version>
+    <kotlin.version>2.1.21</kotlin.version>
   </properties>
   <ciManagement>
     <system>GitHub Actions</system>
@@ -47,7 +47,7 @@
           <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>[5.12.2,)</version>
+            <version>5.13.2</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -198,13 +198,13 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>[5.12.2,)</version>
+      <version>5.13.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-launcher</artifactId>
-      <version>[1.12.2,)</version>
+      <version>1.13.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
