@@ -85,7 +85,7 @@ class StringTest {
     @Test
     void explode() {
         assertEquals(asList("a", "b", "c"), U.explode("abc"));
-        assertEquals(new ArrayList<Object>(), U.explode(null));
+        assertEquals(new ArrayList<>(), U.explode(null));
     }
 
     /*
@@ -189,7 +189,7 @@ class StringTest {
         assertTrue(new U<String>("abc").endsWith("b", 2));
         assertTrue(U.chain("abc").endsWith("b", 2).item());
         assertFalse(U.endsWith("abc", "c", -4));
-        assertFalse(U.endsWith((String) null, (String) null));
+        assertFalse(U.endsWith(null, (String) null));
         assertFalse(U.endsWith("1", (String) null));
         assertFalse(U.endsWith(null, "1"));
         assertTrue(U.endsWith("1", "1"));
@@ -274,7 +274,7 @@ class StringTest {
         assertTrue(new U<String>("abc").startsWith("b", 1));
         assertTrue(U.chain("abc").startsWith("b", 1).item());
         assertFalse(U.startsWith("abc", "c", -4));
-        assertFalse(U.startsWith((String) null, (String) null));
+        assertFalse(U.startsWith(null, (String) null));
         assertFalse(U.startsWith("1", (String) null));
         assertFalse(U.startsWith(null, "1"));
         assertTrue(U.startsWith("1", "1"));
@@ -1038,7 +1038,7 @@ class StringTest {
     void testXmlArray() {
         XmlStringBuilder builder = new XmlStringBuilder();
         Xml.XmlArray.writeXml(
-                null, null, builder, false, Collections.<String>emptySet(), false, ARRAY_TRUE);
+                null, null, builder, false, Collections.emptySet(), false, ARRAY_TRUE);
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\nnull\n</root>",
                 builder.toString());
@@ -1046,13 +1046,13 @@ class StringTest {
         Xml.XmlArray.writeXml(
                 new ArrayList<String>() {
                     {
-                        add((String) null);
+                        add(null);
                     }
                 },
                 null,
                 builder,
                 false,
-                Collections.<String>emptySet(),
+                Collections.emptySet(),
                 false,
                 ARRAY_TRUE);
         assertEquals(
@@ -1063,13 +1063,13 @@ class StringTest {
         Xml.XmlArray.writeXml(
                 new ArrayList<String>() {
                     {
-                        add((String) null);
+                        add(null);
                     }
                 },
                 "name",
                 builder,
                 false,
-                Collections.<String>emptySet(),
+                Collections.emptySet(),
                 false,
                 ARRAY_TRUE);
         assertEquals(
@@ -1467,7 +1467,7 @@ class StringTest {
 
         builder = new XmlStringBuilder();
         Xml.XmlArray.writeXml(
-                new Object[0], null, builder, false, Collections.<String>emptySet(), ARRAY_TRUE);
+                new Object[0], null, builder, false, Collections.emptySet(), ARRAY_TRUE);
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n  <element></element>\n</root>",
                 builder.toString());
@@ -1478,7 +1478,7 @@ class StringTest {
                 null,
                 builder,
                 false,
-                Collections.<String>emptySet(),
+                Collections.emptySet(),
                 ARRAY_TRUE);
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n  <element>Hello</element>\n</root>",
@@ -1490,7 +1490,7 @@ class StringTest {
                 null,
                 builder,
                 false,
-                Collections.<String>emptySet(),
+                Collections.emptySet(),
                 ARRAY_TRUE);
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n  <element>Hello</element>\n"
@@ -3560,7 +3560,7 @@ class StringTest {
         try {
             U.fromJsonMap(stringJson);
         } catch (Throwable throwable) {
-            assertTrue(throwable instanceof StackOverflowError);
+            assertInstanceOf(StackOverflowError.class, throwable);
         }
     }
 
@@ -3730,7 +3730,7 @@ class StringTest {
         U.main(new String[] {});
         new U<>(new ArrayList<>());
         new U<String>("");
-        new U<>(Collections.<Object>emptyList()).chain();
+        new U<>(Collections.emptyList()).chain();
         U.chain(new ArrayList<String>());
         U.chain(new HashSet<String>());
         assertNull(U.chain(new String[] {}).item());
