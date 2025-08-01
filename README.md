@@ -19,7 +19,7 @@ To configure your Maven project, add the following code to your pom.xml file:
   <dependency>
     <groupId>com.github.javadev</groupId>
     <artifactId>underscore-kotlin</artifactId>
-    <version>1.12</version>
+    <version>1.13</version>
   </dependency>
   ...
 </dependencies>
@@ -28,7 +28,7 @@ To configure your Maven project, add the following code to your pom.xml file:
 Gradle configuration:
 
 ```groovy
-implementation 'com.github.javadev:underscore-kotlin:1.12'
+implementation 'com.github.javadev:underscore-kotlin:1.13'
 ```
 
 ### Usage
